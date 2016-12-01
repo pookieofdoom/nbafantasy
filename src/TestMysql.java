@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
+import javax.swing.JFrame;
 
 /*hello andrew*/
 public class TestMysql
@@ -75,6 +76,10 @@ public class TestMysql
          e1.printStackTrace();
       }
       
+      //create gui here
+      JFrame appFrame = new NBAFantasyFrame();
+      appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      appFrame.setVisible(true);
       
       
       try
