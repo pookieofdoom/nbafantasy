@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 
+/*hello andrew*/
 public class TestMysql
 {
    private static Connection conn;
