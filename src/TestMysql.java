@@ -18,6 +18,7 @@ public class TestMysql
    public static void main(String args[])
    {
       NBACreateTable createTable = null;
+      boolean newGame = false;
       //get database config
       loadConfig();
       
@@ -66,6 +67,10 @@ public class TestMysql
             if (flag == false)
             {
                createTable.createTables(tableNames.get(i));
+               if (tableNames.get(i).equals("CurrentGame"))
+               {
+                  newGame = true;
+               }
             }
          }
          
@@ -77,20 +82,61 @@ public class TestMysql
       }
       
       //create gui here
-      JFrame appFrame = new NBAFantasyFrame();
-      appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      appFrame.setVisible(true);
-      
-      
-      try
+      if (newGame)
       {
-         conn.close();
+         JFrame appFrame = new PlayerInfoFrame(conn);
+         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         appFrame.setVisible(true);
       }
-      catch (Exception e)
+      else
       {
-         System.out.println("Unable to close Connection");
+         // start fantasyframe and load values from table here
+         //need an on exit closed function
+         System.out.println("already a game in progress");
+         try
+         {
+            Player player1 = null, player2 = null;
+            int round = 0;
+            Statement s2 = conn.createStatement();
+            ResultSet result = s2.executeQuery("SELECT * FROM CurrentGame");
+            while(result.next())
+            {
+               if (player1 == null)
+               {
+                  player1 = new Player(result.getString("UserName"));
+                  player1.setCurrentTurn(result.getBoolean("Turn"));
+               }
+                  
+               else
+               {
+                  player2 = new Player(result.getString("UserName"));
+                  player2.setCurrentTurn(result.getBoolean("Turn"));
+               }
+               round = result.getInt("Round");
+                  
+            }
+
+            JFrame appFrame = new FantasyFrame(conn, round, player1, player2);
+            appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            appFrame.setVisible(true);
+
+         }
+         
+         catch (Exception e)
+         {
+            System.out.println(e);
+         }
+         
+//         try
+//         {
+//            conn.close();
+//         }
+//         catch (Exception e)
+//         {
+//            System.out.println("Unable to close Connection");
+//         }
+//         System.out.println("Connection Closed");
       }
-      System.out.println("Connection Closed");
      
    }
    
@@ -129,8 +175,6 @@ public class TestMysql
                e.printStackTrace();
             }
          }
-      }
-
-      
+      }   
    }
 }

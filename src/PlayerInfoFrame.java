@@ -1,22 +1,27 @@
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.*;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 
-public class NBAFantasyFrame extends JFrame
+
+public class PlayerInfoFrame extends JFrame
 {
    private JPanel top, bottom;
    private JTextField player1Name, player2Name;
    private Player player1, player2;
+   private Connection mConn;
 
-   public NBAFantasyFrame()
+   public PlayerInfoFrame(Connection conn)
    {
+      mConn = conn;
       setLayout(new GridLayout(2, 1));
-      setSize(new Dimension(1000, 300));
+      setSize(new Dimension(1500, 450));
       createPlayer1Panel();
       createPlayer2Panel();
 
@@ -28,7 +33,7 @@ public class NBAFantasyFrame extends JFrame
    {
       // top size + border + design
       top = new JPanel();
-      top.setPreferredSize(new Dimension(1000, 300));
+      top.setPreferredSize(new Dimension(1500, 450));
       top.setLayout(new GridLayout(2,1));
       top.setBorder(new EtchedBorder());
 
@@ -54,7 +59,7 @@ public class NBAFantasyFrame extends JFrame
    {
       // bottom size + border + design
       bottom = new JPanel();
-      bottom.setPreferredSize(new Dimension(1000, 300));
+      bottom.setPreferredSize(new Dimension(1500, 450));
       bottom.setLayout(new GridLayout(3,1));
       bottom.setBorder(new EtchedBorder());
       
@@ -76,6 +81,7 @@ public class NBAFantasyFrame extends JFrame
       JPanel submitPanel = new JPanel();
       JButton submit = new JButton("Submit");
       submit.setSize(new Dimension(1,50));
+      submit.setToolTipText("Click when both Players' information has been entered");
       submitPanel.add(submit);
       bottom.add(submitPanel);
       submit.addActionListener(new SubmitOnClickListener());
@@ -93,15 +99,47 @@ public class NBAFantasyFrame extends JFrame
          if (player1Name.getText() != null || !player1Name.getText().isEmpty())
          {
             player1 = new Player(player1Name.getText());
+            player1.setCurrentTurn(true);
          }
          if (player2Name.getText() != null || !player2Name.getText().isEmpty())
          {
             player2 = new Player(player2Name.getText());
          }
          System.out.println("player 1 : " + player1.getName() + "\nplayer 2 : " + player2.getName());
+         try
+         {
+            Statement s1 = mConn.createStatement();
+            s1.executeUpdate("INSERT INTO CurrentGame VALUES(0, " + "'" + player1.getName() + "', "
+                  + "0, '1')");
+            s1.executeUpdate("INSERT INTO CurrentGame VALUES(1, " + "'" + player2.getName() + "', "
+                  + "0, '0')");
+            
+         }
+         catch (Exception ee)
+         {
+            System.out.println(ee);
+         }
+//         try
+//         {
+//            mConn.close();
+//         }
+//         catch (Exception ee)
+//         {
+//            System.out.println("Unable to close Connection");
+//         }
+//         System.out.println("Connection Closed");
          
-      }
+         //setVisible(false);
+         Point currentLoc = getLocation();
+         dispose();
+         //setVisible(false);
+         JFrame appFrame = new FantasyFrame(mConn, 0, player1, player2);
+         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         appFrame.setLocation(currentLoc);
+         appFrame.setVisible(true);
+         
+      }  
       
    }
-
+      
 }
