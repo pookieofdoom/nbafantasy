@@ -117,7 +117,8 @@ public class NBACreateTable
                           + "UserName VARCHAR(16),"
                           + "Round INT,"
                           + "Turn CHAR(1),"
-                          + "PRIMARY KEY (UserId)"
+                          + "PRIMARY KEY (UserId),"
+                          + "UNIQUE (UserName)"
                           + ")";
          }
          
@@ -129,7 +130,8 @@ public class NBACreateTable
                           + "Round INT,"
                           + "PRIMARY KEY(ID),"
                           + "FOREIGN KEY(UserId) REFERENCES CurrentGame(UserId),"
-                          + "FOREIGN KEY(Athlete) REFERENCES Players(ID)"
+                          + "FOREIGN KEY(Athlete) REFERENCES Players(ID),"
+                          + "UNIQUE(Athlete)"
                           + ")";
          }
          
@@ -190,5 +192,25 @@ public class NBACreateTable
 
       
           
+   }
+   public static void removeTables(Connection conn)
+   {
+      try
+      {
+         Statement s1 = conn.createStatement();
+         s1.executeUpdate("DROP TABLE GameRoster");
+         s1.executeUpdate("DROP TABLE CurrentGame");
+         s1.executeUpdate("DROP TABLE Stats");
+         s1.executeUpdate("DROP TABLE Players");
+         s1.executeUpdate("DROP TABLE Teams");
+         s1.executeUpdate("DROP TABLE Coaches");
+         s1.executeUpdate("DROP TABLE Positions");
+      } 
+      catch (SQLException e)
+      {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      
    }
 }

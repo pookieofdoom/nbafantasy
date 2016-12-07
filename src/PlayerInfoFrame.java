@@ -96,47 +96,52 @@ public class PlayerInfoFrame extends JFrame
       @Override
       public void actionPerformed(ActionEvent e)
       {
-         if (player1Name.getText() != null || !player1Name.getText().isEmpty())
+         if (player1Name.getText() != null && !player1Name.getText().isEmpty()
+               && player2Name.getText() != null && !player2Name.getText().isEmpty()
+               && !player1Name.getText().equals(player2Name.getText()))
          {
             player1 = new Player(player1Name.getText());
             player1.setCurrentTurn(true);
-         }
-         if (player2Name.getText() != null || !player2Name.getText().isEmpty())
-         {
+
             player2 = new Player(player2Name.getText());
-         }
-         System.out.println("player 1 : " + player1.getName() + "\nplayer 2 : " + player2.getName());
-         try
-         {
-            Statement s1 = mConn.createStatement();
-            s1.executeUpdate("INSERT INTO CurrentGame VALUES(0, " + "'" + player1.getName() + "', "
-                  + "0, '1')");
-            s1.executeUpdate("INSERT INTO CurrentGame VALUES(1, " + "'" + player2.getName() + "', "
-                  + "0, '0')");
             
+            System.out.println("player 1 : " + player1.getName() + "\nplayer 2 : " + player2.getName());
+            try
+            {
+               Statement s1 = mConn.createStatement();
+               s1.executeUpdate("INSERT INTO CurrentGame VALUES(1, " + "'" + player1.getName() + "', "
+                     + "0, '1')");
+               s1.executeUpdate("INSERT INTO CurrentGame VALUES(2, " + "'" + player2.getName() + "', "
+                     + "0, '0')");
+               
+            }
+            catch (Exception ee)
+            {
+               System.out.println(ee);
+            }
+   //         try
+   //         {
+   //            mConn.close();
+   //         }
+   //         catch (Exception ee)
+   //         {
+   //            System.out.println("Unable to close Connection");
+   //         }
+   //         System.out.println("Connection Closed");
+            
+            //setVisible(false);
+            Point currentLoc = getLocation();
+            dispose();
+            //setVisible(false);
+            JFrame appFrame = new FantasyFrame(mConn, 0, player1, player2);
+            appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            appFrame.setLocation(currentLoc);
+            appFrame.setVisible(true);
          }
-         catch (Exception ee)
+         else 
          {
-            System.out.println(ee);
+            JOptionPane.showMessageDialog(null, "Names cannot be blank or the same!!");
          }
-//         try
-//         {
-//            mConn.close();
-//         }
-//         catch (Exception ee)
-//         {
-//            System.out.println("Unable to close Connection");
-//         }
-//         System.out.println("Connection Closed");
-         
-         //setVisible(false);
-         Point currentLoc = getLocation();
-         dispose();
-         //setVisible(false);
-         JFrame appFrame = new FantasyFrame(mConn, 0, player1, player2);
-         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-         appFrame.setLocation(currentLoc);
-         appFrame.setVisible(true);
          
       }  
       

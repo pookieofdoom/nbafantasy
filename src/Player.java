@@ -1,15 +1,14 @@
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Player
 {
    private String mName;
-   private ArrayList<Athlete> mAthleteList;
    private boolean mCurrentTurn;
    
    public Player(String name)
    {
       mName = name;
-      mAthleteList = new ArrayList<>(10);
       mCurrentTurn = false;
    }
    
@@ -23,15 +22,6 @@ public class Player
       return mName;
    }
    
-   public void addAthlete(Athlete athlete)
-   {
-      mAthleteList.add(athlete);
-   }
-   
-   public ArrayList<Athlete> getAllAthletes()
-   {
-      return mAthleteList;
-   }
    
    public void setCurrentTurn(boolean turn)
    {
@@ -41,6 +31,29 @@ public class Player
    public boolean getCurrentTurn()
    {
       return mCurrentTurn;
+   }
+   
+   public int getUserId(Connection conn)
+   {
+      int userId = -1;
+      try
+      {
+         Statement s1 = conn.createStatement();
+         ResultSet result = s1.executeQuery("SELECT * "
+                                          + "FROM CurrentGame "
+                                          + "WHERE UserName = '" + mName + "'");
+         while(result.next())
+         {
+            userId = result.getInt("UserId");
+         }
+      } 
+      catch (SQLException e)
+      {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      
+      return userId;
    }
    
    

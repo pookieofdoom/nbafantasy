@@ -115,7 +115,13 @@ public class TestMysql
                round = result.getInt("Round");
                   
             }
-
+            if (player1 == null || player2 == null)
+            {
+               //destroy everything
+               System.out.println("there was an error so destroying everything. please rerunn app");
+               NBACreateTable.removeTables(conn);
+               System.exit(0);
+            }
             JFrame appFrame = new FantasyFrame(conn, round, player1, player2);
             appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             appFrame.setVisible(true);
