@@ -20,6 +20,8 @@ import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
+   private int DimSizeX = 750; // 1500
+   private int DimSizeY = 350; // 450
    private int mCurrentRound;
    private Player player1, player2;
    private Player mCurrentPlayer;
@@ -31,6 +33,12 @@ public class FantasyFrame extends JFrame
    private JLabel title, currentPlayerLabel;
    private int mInternalRoundCount;
    private int mSelectedRow;
+   private boolean toggle_PG = false;
+   private boolean toggle_SG = false;
+   private boolean toggle_SF = false;
+   private boolean toggle_PF = false;
+   private boolean toggle_C = false;
+   private NonEditableModel model;
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
    {
@@ -54,7 +62,7 @@ public class FantasyFrame extends JFrame
       //setLayout(new GridLayout(2,2));
       //setLayout(new GridLayout(3,1));
       setLayout(new GridLayout(1,2));
-      setSize(new Dimension(1500, 450));
+      setSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       WestPanel = new JPanel(new GridLayout(2,1));
       EastPanel = new JPanel(new GridLayout(1,1));
       loadCurrentTeam();
@@ -174,7 +182,7 @@ public class FantasyFrame extends JFrame
    private void loadList()
    {
       JPanel listPanel = new JPanel(new BorderLayout()); 
-      NonEditableModel model = initData();
+      model = initData();
       table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(table.getModel());
@@ -205,7 +213,7 @@ public class FantasyFrame extends JFrame
       JButton draftButton = new JButton("Draft");
       draftButton.setBackground(Color.ORANGE);      
       detailPanel.add(draftButton, BorderLayout.SOUTH);
-      listPanel.setPreferredSize(new Dimension(1500, 450));
+      listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       listPanel.add(panel, BorderLayout.SOUTH);
       
       EastPanel.add(detailPanel);
@@ -278,6 +286,11 @@ public class FantasyFrame extends JFrame
       JRadioButton sfRB = new JRadioButton("Small Forward");
       JRadioButton pfRB = new JRadioButton("Power Forward");
       JRadioButton cRB = new JRadioButton("Center");
+      pgRB.addActionListener(new TogglePointGuard());
+      sgRB.addActionListener(new ToggleShootingGuard());
+      sfRB.addActionListener(new ToggleSmallForward());
+      pfRB.addActionListener(new TogglePowerForward());
+      cRB.addActionListener(new ToggleCenter());
       positionSortPanel.add(positionSortLabel, BorderLayout.SOUTH);
       positionSortPanel.add(pgRB);
       positionSortPanel.add(sgRB);
@@ -301,8 +314,9 @@ public class FantasyFrame extends JFrame
          Statement s1 = mConn.createStatement();
          ResultSet result = s1.executeQuery("select * "
                                           + "From Stats S, Players P, Teams T "
-                                          + "WHERE P.Id = S.PlayerId AND T.Id = S.TeamId "
+                                          + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
                                           + "AND S.Season = 2015 "
+                                          + GetToggleSettings()
                                           + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");
          result.last();
          rowCount = result.getRow();
@@ -311,35 +325,35 @@ public class FantasyFrame extends JFrame
          data[result.getRow()-1][0] = result.getString("P.FirstName");
          data[result.getRow()-1][1] = result.getString("P.LastName");
          data[result.getRow()-1][2] = result.getInt("S.Age");
-         data[result.getRow()-1][3] = result.getString("T.Name");
+         data[result.getRow()-1][3] = result.getString("T.Abbrev");
          data[result.getRow()-1][4] = result.getInt("S.Games");
          data[result.getRow()-1][5] = result.getInt("S.Starts");
-         data[result.getRow()-1][6] = result.getInt("S.Points");
-         data[result.getRow()-1][7] = result.getInt("S.Assists");
-         data[result.getRow()-1][8] = result.getInt("S.Rebounds");
-         data[result.getRow()-1][9] = result.getInt("S.Steals");
-         data[result.getRow()-1][10] = result.getInt("S.Blocks");
-         data[result.getRow()-1][11] = result.getInt("S.TurnOver");
+         data[result.getRow()-1][6] = result.getDouble("S.Points") / result.getDouble("S.Games");
+         data[result.getRow()-1][7] = result.getDouble("S.Assists") / result.getDouble("S.Games");
+         data[result.getRow()-1][8] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
+         data[result.getRow()-1][9] = result.getDouble("S.Steals") / result.getDouble("S.Games");
+         data[result.getRow()-1][10] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
+         data[result.getRow()-1][11] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
          data[result.getRow()-1][12] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
          data[result.getRow()-1][13] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
          data[result.getRow()-1][14] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
          while (result.next())
          {
             data[result.getRow()-1][0] = result.getString("P.FirstName");
-            data[result.getRow()-1][1] = result.getString("P.LastName");
-            data[result.getRow()-1][2] = result.getInt("S.Age");
-            data[result.getRow()-1][3] = result.getString("T.Name");
-            data[result.getRow()-1][4] = result.getInt("S.Games");
-            data[result.getRow()-1][5] = result.getInt("S.Starts");
-            data[result.getRow()-1][6] = result.getInt("S.Points");
-            data[result.getRow()-1][7] = result.getInt("S.Assists");
-            data[result.getRow()-1][8] = result.getInt("S.Rebounds");
-            data[result.getRow()-1][9] = result.getInt("S.Steals");
-            data[result.getRow()-1][10] = result.getInt("S.Blocks");
-            data[result.getRow()-1][11] = result.getInt("S.TurnOver");
-            data[result.getRow()-1][12] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
-            data[result.getRow()-1][13] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
-            data[result.getRow()-1][14] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
+         data[result.getRow()-1][1] = result.getString("P.LastName");
+         data[result.getRow()-1][2] = result.getInt("S.Age");
+         data[result.getRow()-1][3] = result.getString("T.Abbrev");
+         data[result.getRow()-1][4] = result.getInt("S.Games");
+         data[result.getRow()-1][5] = result.getInt("S.Starts");
+         data[result.getRow()-1][6] = result.getDouble("S.Points") / result.getDouble("S.Games");
+         data[result.getRow()-1][7] = result.getDouble("S.Assists") / result.getDouble("S.Games");
+         data[result.getRow()-1][8] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
+         data[result.getRow()-1][9] = result.getDouble("S.Steals") / result.getDouble("S.Games");
+         data[result.getRow()-1][10] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
+         data[result.getRow()-1][11] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
+         data[result.getRow()-1][12] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
+         data[result.getRow()-1][13] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
+         data[result.getRow()-1][14] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
          }
       
          
@@ -476,6 +490,94 @@ public class FantasyFrame extends JFrame
          
       }
       
+   }
+   
+   private class TogglePointGuard implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_PG = !toggle_PG;
+         refreshList();
+      }
+   }
+   
+   private class ToggleShootingGuard implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_SG = !toggle_SG;
+         refreshList();
+      }
+   }
+   
+   private class ToggleSmallForward implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_SF = !toggle_SF;
+         refreshList();
+      }
+   }
+   
+   private class TogglePowerForward implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_PF = !toggle_PF;
+         refreshList();
+      }
+   }
+   
+   private class ToggleCenter implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_C = !toggle_C;
+         refreshList();
+      }
+   }
+   
+   private void refreshList(){
+      model = initData();
+      table.setModel(model);
+   }
+   
+   private String GetToggleSettings(){
+      String s = "";
+      if(toggle_C || toggle_PG || toggle_SF || toggle_PF || toggle_SG){
+         s = "AND (";
+         int toggleCount = 0;
+         if(toggle_PG){
+            toggleCount++;
+            s = s + "P.Position1 = 1";
+         }
+         if(toggle_SG){
+            if(toggleCount > 0){
+               s = s + " OR ";
+            }
+            toggleCount++;
+            s = s + "P.Position1 = 2";
+         }
+         if(toggle_SF){
+            if(toggleCount > 0){
+               s = s + " OR ";
+            }
+            toggleCount++;
+            s = s + "P.Position1 = 3";
+         }
+         if(toggle_PF){
+            if(toggleCount > 0){
+               s = s + " OR ";
+            }
+            toggleCount++;
+            s = s + "P.Position1 = 4";
+         }
+         if(toggle_C){
+            if(toggleCount > 0){
+               s = s + " OR ";
+            }
+            toggleCount++;
+            s = s + "P.Position1 = 5";
+         }
+         s = s + ")";
+      }
+      System.out.println(s);
+      return s + " ";
    }
 
 }
