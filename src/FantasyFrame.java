@@ -235,7 +235,18 @@ public class FantasyFrame extends JFrame
       detailPanel.add(detailLabel, BorderLayout.NORTH);
       JPanel detailInfo = new JPanel();
       detailInfo.add(detailFN);
-
+      JButton testButton = new JButton("TEST BUTTON :D");
+      testButton.addActionListener(new ActionListener()
+      {
+         
+         @Override
+         public void actionPerformed(ActionEvent e)
+         {
+            // TEST UR SHIT HERE 
+            
+         }
+      });
+      detailInfo.add(testButton);
       JButton restartEverything = new JButton("Restart Everything");
       restartEverything.addActionListener(new Restart());
       detailInfo.add(restartEverything);
