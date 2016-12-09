@@ -85,7 +85,7 @@ public class TestMysql
       if (newGame)
       {
          JFrame appFrame = new PlayerInfoFrame(conn);
-         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
          appFrame.setVisible(true);
       }
       else
@@ -118,12 +118,14 @@ public class TestMysql
             if (player1 == null || player2 == null)
             {
                //destroy everything
-               System.out.println("there was an error so destroying everything. please rerunn app");
-               NBACreateTable.removeTables(conn);
-               System.exit(0);
+               System.out.println("there was an error so destroying everything. please rerunn app");             
+               //actually a new game
+               JFrame appFrame = new PlayerInfoFrame(conn);
+               appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+               appFrame.setVisible(true);
             }
             JFrame appFrame = new FantasyFrame(conn, round, player1, player2);
-            appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             appFrame.setVisible(true);
 
          }
@@ -133,15 +135,6 @@ public class TestMysql
             System.out.println(e);
          }
          
-//         try
-//         {
-//            conn.close();
-//         }
-//         catch (Exception e)
-//         {
-//            System.out.println("Unable to close Connection");
-//         }
-//         System.out.println("Connection Closed");
       }
      
    }

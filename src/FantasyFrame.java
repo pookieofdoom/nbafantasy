@@ -9,6 +9,8 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -20,8 +22,8 @@ import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
-   private int DimSizeX = 750; // 1500
-   private int DimSizeY = 350; // 450
+   private int DimSizeX = 1500; // 1500 for windows, 750 for other
+   private int DimSizeY = 450; // 450 for windows, 350 for other
    private int mCurrentRound;
    private Player player1, player2;
    private Player mCurrentPlayer;
@@ -71,6 +73,37 @@ public class FantasyFrame extends JFrame
       getContentPane().add(EastPanel);
       setResizable(false);
       pack();
+      
+      WindowAdapter exitListener = new WindowAdapter() {
+
+         @Override
+         public void windowClosing(WindowEvent e) {
+             int confirm = JOptionPane.showOptionDialog(
+                  null, "Are You Sure to Close Application?", 
+                  "Exit Confirmation", JOptionPane.YES_NO_OPTION, 
+                  JOptionPane.QUESTION_MESSAGE, null, null, null);
+             if (confirm == 0) 
+             {
+                setVisible(false);
+                dispose();
+                try
+                {
+                   mConn.close();
+                }
+                catch (Exception ee)
+                {
+                   System.out.println("Unable to close Connection");
+                }
+                System.out.println("Connection Closed");
+                System.exit(0);
+             }
+             else
+             {
+                System.out.println("do nothing");
+             }
+         }
+     };
+     addWindowListener(exitListener);
    }
    
    private void loadCurrentTeam()
@@ -202,9 +235,7 @@ public class FantasyFrame extends JFrame
       detailPanel.add(detailLabel, BorderLayout.NORTH);
       JPanel detailInfo = new JPanel();
       detailInfo.add(detailFN);
-      JButton closeConnectionsForTesting = new JButton("CLOSE CONNECTION");
-      closeConnectionsForTesting.addActionListener(new CloseConnection());
-      detailInfo.add(closeConnectionsForTesting);
+
       JButton restartEverything = new JButton("Restart Everything");
       restartEverything.addActionListener(new Restart());
       detailInfo.add(restartEverything);
@@ -452,26 +483,6 @@ public class FantasyFrame extends JFrame
       
    }
    
-   private class CloseConnection implements ActionListener
-   {
-
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-         try
-         {
-            mConn.close();
-         }
-         catch (Exception ee)
-         {
-            System.out.println("Unable to close Connection");
-         }
-         System.out.println("Connection Closed");
-         System.exit(0);
-         
-      }
-      
-   }
    
    private class Restart implements ActionListener
    {
@@ -480,6 +491,11 @@ public class FantasyFrame extends JFrame
       public void actionPerformed(ActionEvent arg0)
       {
          NBACreateTable.removeTables(mConn);
+         NBACreateTable a = new NBACreateTable(mConn);
+         for (int i =0; i < a.getTableNames().size(); i++)
+         {
+            a.createTables(a.getTableNames().get(i));
+         }
          Point currentLoc = getLocation();
          dispose();
          //setVisible(false);

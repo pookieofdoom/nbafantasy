@@ -2,8 +2,12 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.sql.*;
 
 import javax.swing.*;
@@ -27,6 +31,37 @@ public class PlayerInfoFrame extends JFrame
 
       setResizable(false);
       pack();
+      
+      WindowAdapter exitListener = new WindowAdapter() {
+
+         @Override
+         public void windowClosing(WindowEvent e) {
+             int confirm = JOptionPane.showOptionDialog(
+                  null, "Are You Sure to Close Application?", 
+                  "Exit Confirmation", JOptionPane.YES_NO_OPTION, 
+                  JOptionPane.QUESTION_MESSAGE, null, null, null);
+             if (confirm == 0) 
+             {
+                setVisible(false);
+                dispose();
+                try
+                {
+                   mConn.close();
+                }
+                catch (Exception ee)
+                {
+                   System.out.println("Unable to close Connection");
+                }
+                System.out.println("Connection Closed");
+                System.exit(0);
+             }
+             else
+             {
+                System.out.println("do nothing");
+             }
+         }
+     };
+     addWindowListener(exitListener);
    }
 
    private void createPlayer1Panel()
@@ -53,6 +88,7 @@ public class PlayerInfoFrame extends JFrame
 
       // add to frame
       getContentPane().add(top, BorderLayout.NORTH);
+      
    }
 
    private void createPlayer2Panel()
@@ -131,10 +167,10 @@ public class PlayerInfoFrame extends JFrame
             
             //setVisible(false);
             Point currentLoc = getLocation();
+            setVisible(false);
             dispose();
-            //setVisible(false);
             JFrame appFrame = new FantasyFrame(mConn, 0, player1, player2);
-            appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             appFrame.setLocation(currentLoc);
             appFrame.setVisible(true);
          }
@@ -146,5 +182,6 @@ public class PlayerInfoFrame extends JFrame
       }  
       
    }
+   
       
 }
