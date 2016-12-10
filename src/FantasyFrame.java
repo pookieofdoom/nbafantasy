@@ -22,8 +22,8 @@ import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
-   private int DimSizeX = 1500; // 1500 for windows, 750 for other
-   private int DimSizeY = 450; // 450 for windows, 350 for other
+   private int DimSizeX = 700; // 1500 for windows, 750 for other
+   private int DimSizeY = 350; // 450 for windows, 350 for other
    private int mCurrentRound;
    private Player player1, player2;
    private Player mCurrentPlayer;
@@ -214,6 +214,7 @@ public class FantasyFrame extends JFrame
    
    private void loadList()
    {
+      //AddRelScore();
       JPanel listPanel = new JPanel(new BorderLayout()); 
       model = initData();
       table = new JTable(model);
@@ -242,7 +243,7 @@ public class FantasyFrame extends JFrame
          @Override
          public void actionPerformed(ActionEvent e)
          {
-            // TEST UR SHIT HERE 
+            RelativeScore();
             
          }
       });
@@ -255,6 +256,7 @@ public class FantasyFrame extends JFrame
       JButton draftButton = new JButton("Draft");
       draftButton.setBackground(Color.ORANGE);      
       detailPanel.add(draftButton, BorderLayout.SOUTH);
+      
       listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       listPanel.add(panel, BorderLayout.SOUTH);
       
@@ -346,13 +348,16 @@ public class FantasyFrame extends JFrame
    
    private NonEditableModel initData()
    {
-      String[] colNames = {"First Name", "Last Name", "Age", "Team", "Games",
-            "Starts", "Points", "Assists", "Rebounds", "Steals", "Blocks", "TurnOver",
+      String[] colNames = {"First Name", "Last Name", "Team", "Games",
+            "Points", "Assists", "Rebounds", "Steals", "Blocks", "TurnOver",
             "Field Goals", "Three Pointers", "Free Throws"};
       Object[][] data = null;
       int rowCount = 0;
       try
       {
+         // max min avg
+         // overall score?
+         // relative rating
          Statement s1 = mConn.createStatement();
          ResultSet result = s1.executeQuery("select * "
                                           + "From Stats S, Players P, Teams T "
@@ -364,39 +369,38 @@ public class FantasyFrame extends JFrame
          rowCount = result.getRow();
          data = new Object[rowCount][colNames.length];
          result.first();
-         data[result.getRow()-1][0] = result.getString("P.FirstName");
-         data[result.getRow()-1][1] = result.getString("P.LastName");
-         data[result.getRow()-1][2] = result.getInt("S.Age");
-         data[result.getRow()-1][3] = result.getString("T.Abbrev");
-         data[result.getRow()-1][4] = result.getInt("S.Games");
-         data[result.getRow()-1][5] = result.getInt("S.Starts");
-         data[result.getRow()-1][6] = result.getDouble("S.Points") / result.getDouble("S.Games");
-         data[result.getRow()-1][7] = result.getDouble("S.Assists") / result.getDouble("S.Games");
-         data[result.getRow()-1][8] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
-         data[result.getRow()-1][9] = result.getDouble("S.Steals") / result.getDouble("S.Games");
-         data[result.getRow()-1][10] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
-         data[result.getRow()-1][11] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
-         data[result.getRow()-1][12] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
-         data[result.getRow()-1][13] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
-         data[result.getRow()-1][14] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
+         int colIndex = 0;
+         data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
+         data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
+         data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+         data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.Points") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.Assists") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.Steals") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
+         data[result.getRow()-1][colIndex++] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
          while (result.next())
          {
-            data[result.getRow()-1][0] = result.getString("P.FirstName");
-         data[result.getRow()-1][1] = result.getString("P.LastName");
-         data[result.getRow()-1][2] = result.getInt("S.Age");
-         data[result.getRow()-1][3] = result.getString("T.Abbrev");
-         data[result.getRow()-1][4] = result.getInt("S.Games");
-         data[result.getRow()-1][5] = result.getInt("S.Starts");
-         data[result.getRow()-1][6] = result.getDouble("S.Points") / result.getDouble("S.Games");
-         data[result.getRow()-1][7] = result.getDouble("S.Assists") / result.getDouble("S.Games");
-         data[result.getRow()-1][8] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
-         data[result.getRow()-1][9] = result.getDouble("S.Steals") / result.getDouble("S.Games");
-         data[result.getRow()-1][10] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
-         data[result.getRow()-1][11] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
-         data[result.getRow()-1][12] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
-         data[result.getRow()-1][13] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
-         data[result.getRow()-1][14] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
+            colIndex = 0;
+            data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
+            data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
+            data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+            data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.Points") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.Assists") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.Steals") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
+            data[result.getRow()-1][colIndex++] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
          }
+         model.setRowCount(rowCount);
       
          
       }
@@ -519,6 +523,73 @@ public class FantasyFrame extends JFrame
       
    }
    
+   private void RelativeScore(){
+   
+         try{
+         Statement s = mConn.createStatement();
+         ResultSet result = s.executeQuery("select  "
+                                          + "max(Points/Games) as ppg, "
+                                          + "max(Assists/Games) as apg, "
+                                          + "max(Rebounds/Games) as rpg, "
+                                          + "max(Steals/Games) as spg, "
+                                          + "max(Blocks/Games) as bpg, "
+                                          + "max(Turnover/Games) as tov "
+                                          //+ "max() as fgp, "
+                                          //+ "max(Points/Games) as tpp, "
+                                          //+ "max(Points/Games) as ftp"
+                                          + "From Stats S, Players P "
+                                          + "WHERE S.Season = 2015 && P.id = S.playerid"
+                                          + GetToggleSettings()
+                                          + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");                                 
+         result.next();
+         
+         double ppg = result.getDouble("ppg");
+         double apg = result.getDouble("apg");
+         double rpg = result.getDouble("rpg");
+         double spg = result.getDouble("spg");
+         double bpg = result.getDouble("bpg");
+         double tov = result.getDouble("tov");
+         
+         result = s.executeQuery("select "
+                                          + "max(TPM/TPA) as tpp "
+                                          + "From Stats S, Players P "
+                                          + "WHERE S.Season = 2015 && P.id = S.playerid && S.tpa > 20"
+                                          + GetToggleSettings()
+                                          + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");                                 
+         result.next();
+         
+         double tpp = result.getDouble("tpp");
+         
+         result = s.executeQuery("select  "
+                                          + "max(FGM/FGA) as fgp "
+                                          + "From Stats S, Players P "
+                                          + "WHERE S.Season = 2015 && P.id = S.playerid && S.fga > 100"
+                                          + GetToggleSettings()
+                                          + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");                                 
+         result.next();
+         
+         double fgp = result.getDouble("fgp"); 
+         
+         result = s.executeQuery("select  "
+                                          + "max(FTM/FTA) as ftp "
+                                          + "From Stats S, Players P "
+                                          + "WHERE S.Season = 2015 && P.id = S.playerid && S.fta > 100"
+                                          + GetToggleSettings()
+                                          + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)"); 
+         result.next();
+         
+         double ftp = result.getDouble("ftp");
+         
+     
+         
+         System.out.println("lol");
+         } catch (SQLException s){
+            s.printStackTrace();
+            System.out.println("LOL-messedup");
+         }
+
+   }
+   
    private class TogglePointGuard implements ActionListener{
       @Override
       public void actionPerformed(ActionEvent rad){
@@ -562,6 +633,7 @@ public class FantasyFrame extends JFrame
    private void refreshList(){
       model = initData();
       table.setModel(model);
+      //dfgdfgtable.();
    }
    
    private String GetToggleSettings(){
