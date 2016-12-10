@@ -17,19 +17,23 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
-   private int DimSizeX = 700; // 1500 for windows, 750 for other
-   private int DimSizeY = 350; // 450 for windows, 350 for other
+   private int DimSizeX = 500; // 1500 for windows, 750 for other
+   private int DimSizeY = 200; // 450 for windows, 350 for other
    private int mCurrentRound;
    private Player player1, player2;
    private Player mCurrentPlayer;
    private Connection mConn;
    private String mSelectedFN, mSelectedLN;
    private JTable table;
+   private EditableTableModel playerModel;      //player stats table, east side
    private JList player1List, player2List;
    private JPanel WestPanel, EastPanel;
    private JLabel title, currentPlayerLabel;
@@ -212,6 +216,9 @@ public class FantasyFrame extends JFrame
       
    }
    
+   /*what does this function do
+    * 	loads the Fantasy Frame?
+    */
    private void loadList()
    {
       //AddRelScore();
@@ -251,7 +258,7 @@ public class FantasyFrame extends JFrame
       JButton restartEverything = new JButton("Restart Everything");
       restartEverything.addActionListener(new Restart());
       detailInfo.add(restartEverything);
-      detailPanel.add(detailInfo, BorderLayout.CENTER);
+      detailPanel.add(detailInfo, BorderLayout.NORTH);
       
       JButton draftButton = new JButton("Draft");
       draftButton.setBackground(Color.ORANGE);      
@@ -259,6 +266,14 @@ public class FantasyFrame extends JFrame
       
       listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       listPanel.add(panel, BorderLayout.SOUTH);
+      
+      /*init and load individual Athelte table*/
+      playerModel = new EditableTableModel();
+      JTable pTable = new JTable(playerModel);
+      //JScrollPane playerScrollPane = new JScrollPane(pTable);
+      detailPanel.add(pTable, BorderLayout.CENTER);
+      //detailPanel.add(Hello, BorderLayout.WEST);
+      //EastPanel.add(myTable, BorderLayout.EAST);
       
       EastPanel.add(detailPanel);
       listPanel.add(scrollPane, BorderLayout.CENTER);
@@ -315,6 +330,7 @@ public class FantasyFrame extends JFrame
                 mSelectedRow = row;
 
              }
+             playerModel.alertTable();
          }
      });
      draftButton.addActionListener(new DraftOnClickListener());
@@ -373,16 +389,17 @@ public class FantasyFrame extends JFrame
          data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
          data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
          data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
-         data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.Points") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.Assists") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.Steals") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
-         data[result.getRow()-1][colIndex++] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
+         data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts         
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
+    
          while (result.next())
          {
             colIndex = 0;
@@ -390,15 +407,15 @@ public class FantasyFrame extends JFrame
             data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
             data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
             data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.Points") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.Assists") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.Rebounds") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.Steals") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.Blocks") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.TurnOver") / result.getDouble("S.Games");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.FGM") / result.getDouble("S.FGA");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.TPM") / result.getDouble("S.TPA");
-            data[result.getRow()-1][colIndex++] = result.getDouble("S.FTM") / result.getDouble("S.FTA");
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
          }
          model.setRowCount(rowCount);
       
@@ -678,5 +695,92 @@ public class FantasyFrame extends JFrame
       System.out.println(s);
       return s + " ";
    }
+   
+   public double roundMyNum (double tooLong) {
+	   return Math.round(tooLong * 100)/100.0d;
+   }
+   
+   class EditableTableModel extends AbstractTableModel {
+	    private String[] singelAthleteColumns = {"Season", "Games", "Points", "Assists", "Rebounds", "Steals", "Blocks"};
+	    private Object[][] singleAthleteData = new Object[4][7];
+	    
+	    public void alertTable() {
+	    	System.out.println("talking to table" + mSelectedFN+ "\n");
+	    	//need to call clear table, because if players only have one year
+	    	resetPlayerStatTable();
+	    	//data[0][0] = mSelectedFN;
+	    	//data[0][1] = mSelectedLN;
+	        //build sql statement
+	    	try
+	        {
+	           Statement s1 = mConn.createStatement();
+//	           System.out.println("SELECT * "
+//                       + "FROM GameRoster G, Players P "
+//                       + "WHERE G.Athlete = P.Id "
+//                       + "AND P.FirstName = " + "\"" + mSelectedFN + "\""
+//                       + " AND P.LastName = "  + "\"" + mSelectedLN + "\"");
+	           ResultSet result = s1.executeQuery("SELECT * "
+	                                            + "FROM Stats S, Players P "
+	                                            + "WHERE S.PlayerId = P.ID "
+	                                            + "AND P.FirstName = " + "'" + mSelectedFN + "'"
+	                                            + " AND P.LastName = " + "'" + mSelectedLN + "'");
+	           int row = 0;
+	           if (result.last()) {
+	        	   do
+	        	   {
+	        		   System.out.println("Player, Season: " + row);
+	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getInt("S.Games"),
+	        				   result.getInt("S.Points"), result.getInt("S.Assists"), result.getInt("S.Rebounds"),
+	        				   result.getInt("S.Steals"), result.getInt("S.Blocks"));
+	        	   } while (result.previous());
+	           }
+	        } 
+	        catch (SQLException e)
+	        {
+	           // TODO Auto-generated catch block
+	           e.printStackTrace();
+	        }  	
+
+	       
+	    	fireTableDataChanged();
+	    }
+	    public void setValueAtt(int row, String season, int games, int points, 
+	    		int assists, int rebounds, int steals, int blocks) {
+	        singleAthleteData[row][0] = season;
+	        singleAthleteData[row][1] = games;
+	        singleAthleteData[row][2] = roundMyNum (points / games);
+	        singleAthleteData[row][3] = roundMyNum (assists / games);
+	        singleAthleteData[row][4] = roundMyNum (rebounds / games);
+	        singleAthleteData[row][5] = roundMyNum (steals / games);
+	        singleAthleteData[row][6] = roundMyNum (blocks / games);
+	        fireTableDataChanged();
+	    }
+	    
+	    private void resetPlayerStatTable () {
+	    	int row = 0;
+	    	int col = 0;
+	    	for(row = 0; row < getRowCount(); row++) {
+	    		for(col = 0; col < getColumnCount(); col++) {
+	    			singleAthleteData[row][col] = "";
+	    		}
+	    	}
+	    	
+	    }
+	    /*Mandatory functions to implement Abtractclass*/
+	    public int getColumnCount() {
+	        return singelAthleteColumns.length;
+	    }
+	    public int getRowCount() {
+	        return singleAthleteData.length;
+	    }
+
+	    public String getColumnName(int col) {
+	        return singelAthleteColumns[col];
+	    }
+
+	    public Object getValueAt(int row, int col) {
+	        return singleAthleteData[row][col];
+	    }
+	}
 
 }
