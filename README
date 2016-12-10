@@ -1,0 +1,13 @@
+Team Name: Three-ple
+
+Team Product: NBA Fantasy Draft
+
+Date: 12/9/2016
+
+Details:
+The directories CVSFiles and mySqlStatements hold our datasets.
+	mySqlStatements holds the insert and create table mysql statements.
+	The csv fies are for Players and their Statistics.
+	Datasets like teams and coaches were made by hand.
+
+All application code is in src directory.
