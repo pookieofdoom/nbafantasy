@@ -160,15 +160,25 @@ public class NBACreateTable
 
       StringBuilder sb = new StringBuilder();
       String line;
+      BufferedReader bufferedReader = null;
       try
       {
-         BufferedReader bufferedReader = new BufferedReader(
+    	 if ((System.getProperty("os.name").toString().contains("Windows"))) {
+          bufferedReader = new BufferedReader(
                                          new FileReader("src\\SQLInserts\\build-" + tableName.toLowerCase() + ".sql")
                                                             );
+    	 }
+    	 else {
+             bufferedReader = new BufferedReader(
+                     new FileReader("src/SQLInserts/build-" + tableName.toLowerCase() + ".sql")
+                                        );    		 	 
+    	 }
+    	 
          while ((line = bufferedReader.readLine()) != null)
          {
              sb.append(line);
          }
+    	 
      }
       catch (FileNotFoundException e)
       {

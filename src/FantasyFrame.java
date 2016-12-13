@@ -25,14 +25,14 @@ import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
-   private int DimSizeX = 500; // 1500 for windows, 750 for other
-   private int DimSizeY = 200; // 450 for windows, 350 for other
+   private int DimSizeX = 800; // 1500 for windows, 750 for other
+   private int DimSizeY = 800; // 450 for windows, 350 for other
    private int mCurrentRound;
    private Player player1, player2;
    private Player mCurrentPlayer;
    private Connection mConn;
    private String mSelectedFN, mSelectedLN;
-   private JTable table;
+   private JTable fantasyTable;
    private EditableTableModel playerModel;      //player stats table, east side
    private JList player1List, player2List;
    private JPanel WestPanel, EastPanel;
@@ -44,7 +44,7 @@ public class FantasyFrame extends JFrame
    private boolean toggle_SF = false;
    private boolean toggle_PF = false;
    private boolean toggle_C = false;
-   private NonEditableModel model;
+   private NonEditableModel fantasyModel;
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
    {
@@ -80,7 +80,7 @@ public class FantasyFrame extends JFrame
       loadCurrentTeam();
       getContentPane().add(WestPanel);
       getContentPane().add(EastPanel);
-      setResizable(false);
+      setResizable(true);
       pack();
       
       WindowAdapter exitListener = new WindowAdapter() {
@@ -228,14 +228,14 @@ public class FantasyFrame extends JFrame
    {
       //AddRelScore();
       JPanel listPanel = new JPanel(new BorderLayout()); 
-      model = initData();
-      table = new JTable(model);
-      table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      listPanel.setPreferredSize(new Dimension(2000, DimSizeY));
-      TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(table.getModel());
-      JScrollPane scrollPane = new JScrollPane(table);
+      fantasyModel = new NonEditableModel();
+      fantasyTable = new JTable(fantasyModel);
+      fantasyTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      //listPanel.setPreferredSize(new Dimension(2000, DimSizeY));
+      TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(fantasyTable.getModel());
       JTextField tableFilter = new JTextField();
-      table.setRowSorter(rowSorter);
+      fantasyTable.setRowSorter(rowSorter);
+      JScrollPane scrollPane = new JScrollPane(fantasyTable);
       JPanel panel = new JPanel(new BorderLayout());
       panel.add(new JLabel("Specify a word to match:"),BorderLayout.WEST);
       panel.add(tableFilter, BorderLayout.CENTER);
@@ -272,18 +272,18 @@ public class FantasyFrame extends JFrame
       
       listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       listPanel.add(panel, BorderLayout.SOUTH);
-      
+      listPanel.add(scrollPane, BorderLayout.CENTER);
+
       /*init and load individual Athelte table*/
       playerModel = new EditableTableModel();
       JTable pTable = new JTable(playerModel);
-      //JScrollPane playerScrollPane = new JScrollPane(pTable);
-      detailPanel.add(pTable, BorderLayout.CENTER);
+      JScrollPane playerScrollPane = new JScrollPane(pTable);
+      detailPanel.add(playerScrollPane, BorderLayout.CENTER);
       //detailPanel.add(Hello, BorderLayout.WEST);
       //EastPanel.add(myTable, BorderLayout.EAST);
       
       EastPanel.add(detailPanel);
-      listPanel.add(scrollPane, BorderLayout.CENTER);
-      WestPanel.add(listPanel, 0,0);
+      WestPanel.add(listPanel,0,0);
       
       tableFilter.getDocument().addDocumentListener(new DocumentListener()
       {
@@ -322,16 +322,16 @@ public class FantasyFrame extends JFrame
          }
       });
      
-      table.addMouseListener(new MouseAdapter() 
+      fantasyTable.addMouseListener(new MouseAdapter() 
       {
          @Override
          public void mouseClicked(java.awt.event.MouseEvent evt) {
-             int row = table.convertRowIndexToModel(table.rowAtPoint(evt.getPoint()));
-             int col = table.convertColumnIndexToModel(table.columnAtPoint(evt.getPoint()));
+             int row = fantasyTable.convertRowIndexToModel(fantasyTable.rowAtPoint(evt.getPoint()));
+             int col = fantasyTable.convertColumnIndexToModel(fantasyTable.columnAtPoint(evt.getPoint()));
              if (row >= 0 && col >= 0) 
              {
-                mSelectedFN = (String) table.getModel().getValueAt(row, 0);
-                mSelectedLN = (String) table.getModel().getValueAt(row, 1);
+                mSelectedFN = (String) fantasyTable.getModel().getValueAt(row, 0);
+                mSelectedLN = (String) fantasyTable.getModel().getValueAt(row, 1);
                 detailFN.setText(mSelectedFN);
                 mSelectedRow = row;
 
@@ -366,72 +366,118 @@ public class FantasyFrame extends JFrame
       return positionSortPanel;
    }
 
-
-   
-   private NonEditableModel initData()
+   class NonEditableModel extends AbstractTableModel
    {
-      String[] colNames = {"First Name", "Last Name", "Team", "Games",
+      public String[] colNames = {"First Name", "Last Name", "Team", "Games",
             "Points", "Assists", "Rebounds", "Steals", "Blocks", "TurnOver",
             "Field Goals", "Three Pointers", "Free Throws"};
-      Object[][] data = null;
-      int rowCount = 0;
-      try
-      {
-         // max min avg
-         // overall score?
-         // relative rating
-         Statement s1 = mConn.createStatement();
-         ResultSet result = s1.executeQuery("select * "
-                                          + "From Stats S, Players P, Teams T "
-                                          + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
-                                          + "AND S.Season = 2015 "
-                                          + GetToggleSettings()
-                                          + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");
-         result.last();
-         rowCount = result.getRow();
-         data = new Object[rowCount][colNames.length];
-         result.first();
-         int colIndex = 0;
-         data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
-         data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
-         data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
-         data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts         
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
-         data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
-    
-         while (result.next())
-         {
-            colIndex = 0;
-            data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
-            data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
-            data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
-            data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
-            data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
-         }
-         model.setRowCount(rowCount);
+      public Object[][] data = null;
+      public int rowCount = 0;
       
-         
-      }
-      catch (Exception e)
-      {
-         System.out.println(e);
-      }
-      return new NonEditableModel(data, colNames);
+      public NonEditableModel() {
+    	  refreshDataWithQuery();
+        } //end of constructor
+      
+	    void removeRow (String fName, String lName) {
+	    	int newRowCount = rowCount - 1;
+	    	Object newTable[][] = new Object[newRowCount][colNames.length];
+	    	int row, newTableRow, col;
+	    	for (row = 0, newTableRow = 0; row < rowCount; row++ ) {
+	    		
+	    		if(fName.equals(data[row][0]) && lName.equals(data[row][1])) {
+	    			//do nothing
+	    		}
+	    		else {
+	    			//copy column in
+	    			for (col = 0; col < colNames.length; col++) {
+	    				newTable[newTableRow][col] = data[row][col];
+	    			}
+	    			newTableRow++;
+	    		}
+	    	}
+	    	rowCount--; 
+	    	data = newTable;
+	    	fireTableDataChanged();	    	
+	    }
+	    /*Mandatory functions to implement Abtractclass*/
+	    public int getColumnCount() {
+	        return colNames.length;
+	    }
+	    public int getRowCount() {
+	        return data.length;
+	    }
+
+	    public String getColumnName(int col) {
+	        return colNames[col];
+	    }
+
+	    public Object getValueAt(int row, int col) {
+	        return data[row][col];
+	    }
+	    
+	    void refreshDataWithQuery() {
+	        try
+	        {
+	           // max min avg
+	           // overall score?
+	           // relative rating
+	           Statement s1 = mConn.createStatement();
+	           ResultSet result = s1.executeQuery("select * "
+	                                            + "From Stats S, Players P, Teams T "
+	                                            + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
+	                                            + "AND S.Season = 2015 "
+	                                            + GetToggleSettings()
+	                                            + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");
+	           result.last();
+	           rowCount = result.getRow();
+	           data = new Object[rowCount][colNames.length];
+	           result.first();
+	           int colIndex = 0;
+	           data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
+	           data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
+	           data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+	           data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts         
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
+	      
+	           while (result.next())
+	           {
+	              colIndex = 0;
+	              data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
+	              data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
+	              data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+	              data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Rebounds") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Steals") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
+	              //System.out.println("string");
+	           }
+	           //fantasyModel.setRowCount(rowCount);
+	        	}
+	        	catch (Exception e)
+	        	{
+	      	  System.out.println(e);
+	        	}	    	
+	    }
+	    @Override
+	    public Class<?> getColumnClass(int columnIndex) {
+
+	        return getValueAt(0, columnIndex).getClass();
+	    }
+
    }
    
    private void insertIntoGameRoster()
@@ -482,7 +528,8 @@ public class FantasyFrame extends JFrame
          //insert into GameRoster table
          insertIntoGameRoster();
          //remove row from Table since athlete has now been chosen
-         ((NonEditableModel)table.getModel()).removeRow(mSelectedRow);
+         //todo ((NonEditableModel)table.getModel()).removeRow(mSelectedRow);
+         fantasyModel.removeRow(mSelectedFN, mSelectedLN);
          if (mCurrentPlayer.getName().equals(player1.getName()))
          {
             System.out.println(mCurrentPlayer.getName());
@@ -514,11 +561,8 @@ public class FantasyFrame extends JFrame
             mCurrentRound++;
             //update current playrsr round? field might not be needed.
             title.setText(("Round " + mCurrentRound));
-         }
-         
-         
+         }         
       }
-      
    }
    
    
@@ -603,8 +647,6 @@ public class FantasyFrame extends JFrame
          
          double ftp = result.getDouble("ftp");
          
-     
-         
          System.out.println("lol");
          } catch (SQLException s){
             s.printStackTrace();
@@ -617,7 +659,12 @@ public class FantasyFrame extends JFrame
       @Override
       public void actionPerformed(ActionEvent rad){
          toggle_PG = !toggle_PG;
+         System.out.println("Number of rows: "+ fantasyModel.rowCount);
          refreshList();
+         //fantasyModel.fireTableDataChanged();
+         System.out.println("called rfresh list\n");
+         System.out.println("Number of rows: "+ fantasyModel.rowCount);
+
       }
    }
    
@@ -653,10 +700,10 @@ public class FantasyFrame extends JFrame
       }
    }
    
-   private void refreshList(){
-      model = initData();
-      table.setModel(model);
-      //dfgdfgtable.();
+  private void refreshList(){
+      fantasyModel.refreshDataWithQuery();
+      fantasyModel.fireTableDataChanged();
+      System.out.println("Number of row from table: " + fantasyTable.getModel().getRowCount());
    }
    
    private String GetToggleSettings(){
@@ -711,7 +758,6 @@ public class FantasyFrame extends JFrame
 	    private Object[][] singleAthleteData = new Object[4][7];
 	    
 	    public void alertTable() {
-	    	System.out.println("talking to table" + mSelectedFN+ "\n");
 	    	//need to call clear table, because if players only have one year
 	    	resetPlayerStatTable();
 	    	//data[0][0] = mSelectedFN;
@@ -720,11 +766,7 @@ public class FantasyFrame extends JFrame
 	    	try
 	        {
 	           Statement s1 = mConn.createStatement();
-//	           System.out.println("SELECT * "
-//                       + "FROM GameRoster G, Players P "
-//                       + "WHERE G.Athlete = P.Id "
-//                       + "AND P.FirstName = " + "\"" + mSelectedFN + "\""
-//                       + " AND P.LastName = "  + "\"" + mSelectedLN + "\"");
+
 	           ResultSet result = s1.executeQuery("SELECT * "
 	                                            + "FROM Stats S, Players P "
 	                                            + "WHERE S.PlayerId = P.ID "
@@ -734,7 +776,6 @@ public class FantasyFrame extends JFrame
 	           if (result.last()) {
 	        	   do
 	        	   {
-	        		   System.out.println("Player, Season: " + row);
 	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getInt("S.Games"),
 	        				   result.getInt("S.Points"), result.getInt("S.Assists"), result.getInt("S.Rebounds"),
 	        				   result.getInt("S.Steals"), result.getInt("S.Blocks"));
