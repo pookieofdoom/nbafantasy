@@ -68,11 +68,16 @@ public class FantasyFrame extends JFrame
       //setLayout(new GridLayout(2,2));
       //setLayout(new GridLayout(3,1));
       setLayout(new GridLayout(1,2));
+      if (System.getProperty("os.name").toString().contains("Windows"))
+      {
+         DimSizeX = 800;
+         DimSizeY = 800;
+      }
       setSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
-      WestPanel = new JPanel(new GridLayout(2,1));
-      EastPanel = new JPanel(new GridLayout(1,1));
-      loadCurrentTeam();
+      WestPanel = new JPanel(new GridLayout(1,1));
+      EastPanel = new JPanel(new GridLayout(2,1));
       loadList();
+      loadCurrentTeam();
       getContentPane().add(WestPanel);
       getContentPane().add(EastPanel);
       setResizable(false);
@@ -212,7 +217,7 @@ public class FantasyFrame extends JFrame
               
       playerInfoPanel.add(player1Info);
       playerInfoPanel.add(player2Info);
-      WestPanel.add(playerInfoPanel);
+      EastPanel.add(playerInfoPanel);
       
    }
    
@@ -226,6 +231,7 @@ public class FantasyFrame extends JFrame
       model = initData();
       table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      listPanel.setPreferredSize(new Dimension(2000, DimSizeY));
       TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(table.getModel());
       JScrollPane scrollPane = new JScrollPane(table);
       JTextField tableFilter = new JTextField();
