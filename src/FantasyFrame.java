@@ -154,13 +154,14 @@ public class FantasyFrame extends JFrame
          int userId = player1.getUserId(mConn);
          Statement s1 = mConn.createStatement();
          ResultSet result = s1.executeQuery("SELECT * "
-                                          + "FROM GameRoster G, Players P "
-                                          + "WHERE G.Athlete = P.Id "
+                                          + "FROM GameRoster G, Players P, Positions Pos "
+                                          + "WHERE G.Athlete = P.Id AND P.position1 = Pos.pos "
                                           + "AND G.UserId = " + userId);
          while (result.next())
          {
             ((DefaultListModel)player1List.getModel())
-               .addElement(result.getString("P.FirstName") + " " + result.getString("P.LastName"));
+               .addElement(result.getString("P.FirstName") + " " + result.getString("P.LastName") + ", "
+                     + result.getString("Pos.Position"));
          }
       } 
       catch (SQLException e)
@@ -202,13 +203,14 @@ public class FantasyFrame extends JFrame
          int userId = player2.getUserId(mConn);
          Statement s1 = mConn.createStatement();
          ResultSet result = s1.executeQuery("SELECT * "
-                                          + "FROM GameRoster G, Players P "
-                                          + "WHERE G.Athlete = P.Id "
+                                          + "FROM GameRoster G, Players P, Positions Pos "
+                                          + "WHERE G.Athlete = P.Id AND P.position1 = Pos.pos "
                                           + "AND G.UserId = " + userId);
          while (result.next())
          {
             ((DefaultListModel)player2List.getModel())
-               .addElement(result.getString("P.FirstName") + " " + result.getString("P.LastName"));
+            .addElement(result.getString("P.FirstName") + " " + result.getString("P.LastName") + ", "
+                  + result.getString("Pos.Position"));
          }
       } 
       catch (SQLException e)
@@ -549,24 +551,26 @@ public class FantasyFrame extends JFrame
 
    }
    
-   private void insertIntoGameRoster()
+   private String insertIntoGameRoster()
    {
-      System.out.println(mSelectedFN + " " + mSelectedLN);
+      String position = "";
       try
       {
          int rowCount = 0;
          int athleteId = -1;
          Statement s1 = mConn.createStatement();
          //need to query the values needed to insert this given firstname and lastname of athlete
-         ResultSet result = s1.executeQuery("SELECT ID "
-                                          + "From Players "
+         ResultSet result = s1.executeQuery("SELECT Players.ID, Pos.Position "
+                                          + "From Players, Positions Pos "
                                           + "WHERE FirstName = '"  +mSelectedFN +"' "
-                                          + "AND LastName = '" + mSelectedLN + "'");
+                                          + "AND LastName = '" + mSelectedLN + "' "
+                                          + "AND Players.Position1 = Pos.pos");
          
          //get ID of athelete about to get inserted into gameroster table
          while (result.next())
          {
-            athleteId = result.getInt("ID");
+            athleteId = result.getInt("Players.ID");
+            position = result.getString("Pos.Position");
          }
          //get current row count
          result = s1.executeQuery("SELECT * FROM GameRoster");
@@ -587,6 +591,7 @@ public class FantasyFrame extends JFrame
       {
          System.out.println(ee);
       }
+      return position;
    }
    
    private class DraftOnClickListener implements ActionListener
@@ -595,7 +600,7 @@ public class FantasyFrame extends JFrame
       public void actionPerformed(ActionEvent arg0)
       {
          //insert into GameRoster table
-         insertIntoGameRoster();
+         String position = insertIntoGameRoster();
          /*null check for players once drafted*/
          if (mSelectedFN != null) {
 	         fantasyModel.removeRow(mSelectedFN, mSelectedLN);
@@ -603,13 +608,13 @@ public class FantasyFrame extends JFrame
 	         {
 	            System.out.println(mCurrentPlayer.getName());
 	            ((DefaultListModel<String>)player1List.getModel())
-	            .addElement(mSelectedFN + " " + mSelectedLN);
+	            .addElement(mSelectedFN + " " + mSelectedLN + ", " + position);
 	         }
 	         else
 	         {
 	            System.out.println(mCurrentPlayer.getName());
 	            ((DefaultListModel<String>)player2List.getModel())
-	            .addElement(mSelectedFN + " " + mSelectedLN);
+	            .addElement(mSelectedFN + " " + mSelectedLN + ", " + position);
 	         }
 	         
 	         player1.setCurrentTurn(!player1.getCurrentTurn());
