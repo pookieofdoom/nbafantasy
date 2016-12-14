@@ -140,7 +140,6 @@ public class PlayerInfoFrame extends JFrame
             player1.setCurrentTurn(true);
 
             player2 = new Player(player2Name.getText());
-            
             System.out.println("player 1 : " + player1.getName() + "\nplayer 2 : " + player2.getName());
             try
             {

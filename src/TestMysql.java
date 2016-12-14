@@ -108,12 +108,14 @@ public class TestMysql
                {
                   player1 = new Player(result.getString("UserName"));
                   player1.setCurrentTurn(result.getBoolean("Turn"));
+                  player1.grabPositionsOnStartUp(conn);
                }
                   
                else
                {
                   player2 = new Player(result.getString("UserName"));
                   player2.setCurrentTurn(result.getBoolean("Turn"));
+                  player2.grabPositionsOnStartUp(conn);
                }
                round = result.getInt("Round");
                System.out.println("here is the round" + round);

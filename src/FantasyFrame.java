@@ -49,7 +49,7 @@ public class FantasyFrame extends JFrame
    private JLabel detailFN;
    private JButton draftButton;
    private char[] OrderBy = {'V','D'};
-   private static int totalRounds = 4;
+   private static int totalRounds = 10;
     
 
    
@@ -70,7 +70,18 @@ public class FantasyFrame extends JFrame
          mCurrentPlayer = player2;
          mInternalRoundCount = 2;
       }
+      
+      System.out.println("point guard on start up: " + player1.getPositionCount("Point Guard"));
+      System.out.println("shooting guard on start up: " +player1.getPositionCount("Shooting Guard"));
+      System.out.println("small forward on start up: " +player1.getPositionCount("Small Forward"));
+      System.out.println("power forward on start up: " +player1.getPositionCount("Power Forward"));
+      System.out.println("center on start up: " +player1.getPositionCount("Center"));
          
+      System.out.println("point guard on start up: " + player2.getPositionCount("Point Guard"));
+      System.out.println("shooting guard on start up: " +player2.getPositionCount("Shooting Guard"));
+      System.out.println("small forward on start up: " +player2.getPositionCount("Small Forward"));
+      System.out.println("power forward on start up: " +player2.getPositionCount("Power Forward"));
+      System.out.println("center on start up: " +player2.getPositionCount("Center"));
       
       //setLayout(new GridLayout(2,2));
       //setLayout(new GridLayout(3,1));
@@ -609,12 +620,18 @@ public class FantasyFrame extends JFrame
 	            System.out.println(mCurrentPlayer.getName());
 	            ((DefaultListModel<String>)player1List.getModel())
 	            .addElement(mSelectedFN + " " + mSelectedLN + ", " + position);
+	            
+	            player1.incrementPositionCount(position);
+	            System.out.println("position: " + position +" " + player1.getPositionCount(position));
+	            
 	         }
 	         else
 	         {
 	            System.out.println(mCurrentPlayer.getName());
 	            ((DefaultListModel<String>)player2List.getModel())
 	            .addElement(mSelectedFN + " " + mSelectedLN + ", " + position);
+	            player2.incrementPositionCount(position);
+	            System.out.println("position: " + position +" " + player2.getPositionCount(position));
 	         }
 	         
 	         player1.setCurrentTurn(!player1.getCurrentTurn());
@@ -1085,8 +1102,36 @@ public class FantasyFrame extends JFrame
       return "ORDER BY " + s + ", S.OVERALL desc ";
    }
    
+   private String playerLimits()
+   {
+      String s = "";
+      if (mCurrentPlayer.getPositionCount("Point Guard") == 2)
+      {
+         s += " AND P.Position1 != 1 ";
+      }
+      if (mCurrentPlayer.getPositionCount("Shooting Guard") == 2)
+      {
+         s += " AND P.Position1 != 2 ";
+      }
+      if (mCurrentPlayer.getPositionCount("Small Forward") == 2)
+      {
+         s += " AND P.Position1 != 3 ";
+      }
+      if (mCurrentPlayer.getPositionCount("Power Forward") == 2)
+      {
+         s += " AND P.Position1 != 4 ";
+      }
+      if (mCurrentPlayer.getPositionCount("Center") == 2)
+      {
+         s += " AND P.Position1 != 5 ";
+      }
+      
+      return s;
+   }
+   
    private String GetToggleSettings(){
-      String s = " AND P.Position1 != 4 ";
+      
+      String s = playerLimits();
       if(toggle_C || toggle_PG || toggle_SF || toggle_PF || toggle_SG){
          s = s + "AND (";
          int toggleCount = 0;
