@@ -46,6 +46,7 @@ public class FantasyFrame extends JFrame
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
    private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
+   private static int totalRounds = 0;
 
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
@@ -70,12 +71,7 @@ public class FantasyFrame extends JFrame
       //setLayout(new GridLayout(2,2));
       //setLayout(new GridLayout(3,1));
       setLayout(new GridLayout(1,2));
-      if (System.getProperty("os.name").toString().contains("Windows"))
-      {
-         DimSizeX = 800;
-         DimSizeY = 800;
-      }
-      setSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
+
       WestPanel = new JPanel(new GridLayout(1,1));
       EastPanel = new JPanel(new GridLayout(2,1));
       loadList();
@@ -84,6 +80,12 @@ public class FantasyFrame extends JFrame
       getContentPane().add(EastPanel);
       setResizable(true);
       pack();
+      if (System.getProperty("os.name").toString().contains("Windows"))
+      {
+         DimSizeX = 1500;
+         DimSizeY = 1000;
+      }
+      setSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       
       WindowAdapter exitListener = new WindowAdapter() {
 
@@ -125,7 +127,7 @@ public class FantasyFrame extends JFrame
       GridBagConstraints c = new GridBagConstraints();
       //c.fill = GridBagConstraints.HORIZONTAL; 
       
-      title = new JLabel("Round " + mCurrentRound);
+      title = new JLabel("Round " + mCurrentRound + "/" + totalRounds);
       title.setFont(title.getFont().deriveFont(32f));
       c.weightx = 0.0;
       c.gridx = 0;
@@ -235,6 +237,7 @@ public class FantasyFrame extends JFrame
       fantasyTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       //listPanel.setPreferredSize(new Dimension(2000, DimSizeY));
       TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(fantasyTable.getModel());
+
       JTextField tableFilter = new JTextField();
       fantasyTable.setRowSorter(rowSorter);
       JScrollPane scrollPane = new JScrollPane(fantasyTable);
@@ -272,7 +275,7 @@ public class FantasyFrame extends JFrame
       draftButton.setBackground(Color.ORANGE);      
       detailPanel.add(draftButton, BorderLayout.SOUTH);
       
-      listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
+      //listPanel.setPreferredSize(new Dimension(DimSizeX, DimSizeY)); // 1500, 450
       listPanel.add(panel, BorderLayout.SOUTH);
       listPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -347,6 +350,8 @@ public class FantasyFrame extends JFrame
    
    private JPanel loadPositionSort()
    {
+      JPanel sortPanel = new JPanel(new GridLayout(2,0));
+      
       JPanel positionSortPanel = new JPanel(new GridLayout(1, 0));
       JLabel positionSortLabel = new JLabel("Positions:");
       JRadioButton pgRB = new JRadioButton("Point Guard");
@@ -365,7 +370,42 @@ public class FantasyFrame extends JFrame
       positionSortPanel.add(sfRB);
       positionSortPanel.add(pfRB);
       positionSortPanel.add(cRB);
-      return positionSortPanel;
+      
+      sortPanel.add(positionSortPanel);
+      JPanel orderPanel = new JPanel(new GridLayout(3,0));
+      JButton firstName = new JButton("FirstName");
+      JButton lastName = new JButton("LastName"); 
+      JButton team = new JButton("Team");
+      JButton games = new JButton("Games");
+      JButton positions = new JButton("Positions");
+      JButton points = new JButton("Points");
+      JButton assists = new JButton("Assists");
+      JButton rebounds = new JButton("Rebounds");
+      JButton steals = new JButton("Steals");
+      JButton blocks = new JButton("Blocks");
+      JButton turnover = new JButton("TurnOver");
+      JButton fieldGoalP = new JButton("FieldGoal%");
+      JButton freethrowP = new JButton("FreeThrow%");
+      JButton Overall = new JButton("Overall");
+      JButton Relative = new JButton("Relative");
+      orderPanel.add(firstName);
+      orderPanel.add(lastName);
+      orderPanel.add(team);
+      orderPanel.add(games);
+      orderPanel.add(positions);
+      orderPanel.add(points);
+      orderPanel.add(assists);
+      orderPanel.add(rebounds);
+      orderPanel.add(steals);
+      orderPanel.add(blocks);
+      orderPanel.add(turnover);
+      orderPanel.add(fieldGoalP);
+      orderPanel.add(freethrowP);
+      orderPanel.add(Overall);
+      orderPanel.add(Relative);
+      sortPanel.add(orderPanel);
+      
+      return sortPanel;
    }
 
    class NonEditableModel extends AbstractTableModel
@@ -560,14 +600,25 @@ public class FantasyFrame extends JFrame
          currentPlayerLabel.setText("Current Turn :" + mCurrentPlayer.getName());
 
          mInternalRoundCount++;           
-
+         
          if (mInternalRoundCount % 3 == 0)
          {
             mInternalRoundCount = 1;
             mCurrentRound++;
             //update current playrsr round? field might not be needed.
-            title.setText(("Round " + mCurrentRound));
-         }         
+
+            title.setText("Round " + mCurrentRound + "/" + totalRounds);
+         }
+         if (mCurrentRound == totalRounds)
+         {
+            Point currentLoc = getLocation();
+            setVisible(false);
+            dispose();
+            JFrame appFrame = new WinnerFrame(mConn, player1, player2);
+            appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            appFrame.setLocation(currentLoc);
+            appFrame.setVisible(true);
+         }
       }
    }
    
