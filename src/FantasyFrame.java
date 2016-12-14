@@ -45,12 +45,12 @@ public class FantasyFrame extends JFrame
    private boolean toggle_PF = false;
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
-   private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
-
-   private static int totalRounds = 2;
 
    private JLabel detailFN;
    private JButton draftButton;
+   private char[] OrderBy = {'V','D'};
+   private static int totalRounds = 4;
+    
 
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
@@ -390,8 +390,8 @@ public class FantasyFrame extends JFrame
       JButton turnover = new JButton("TurnOver");
       JButton fieldGoalP = new JButton("FieldGoal%");
       JButton freethrowP = new JButton("FreeThrow%");
-      JButton Overall = new JButton("Overall");
-      JButton Relative = new JButton("Relative");
+      JButton threePointMade = new JButton("3 Pt Made");
+      JButton Relative = new JButton("Overall");
       firstName.addActionListener(new OrderBy_FirstName());
       lastName.addActionListener(new OrderBy_LastName());
       team.addActionListener(new OrderBy_Team());
@@ -405,8 +405,8 @@ public class FantasyFrame extends JFrame
       turnover.addActionListener(new OrderBy_TurnOvers());
       fieldGoalP.addActionListener(new OrderBy_FGPercent());
       freethrowP.addActionListener(new OrderBy_FTPercent());
-      Overall.addActionListener(new OrderBy_Overall());
-      Relative.addActionListener(new OrderBy_FirstName());
+      threePointMade.addActionListener(new OrderBy_3PM());
+      Relative.addActionListener(new OrderBy_Relative());
       
 
       orderPanel.add(firstName);
@@ -422,7 +422,7 @@ public class FantasyFrame extends JFrame
       orderPanel.add(turnover);
       orderPanel.add(fieldGoalP);
       orderPanel.add(freethrowP);
-      orderPanel.add(Overall);
+      orderPanel.add(threePointMade);
       orderPanel.add(Relative);
       sortPanel.add(orderPanel);
       
@@ -431,7 +431,7 @@ public class FantasyFrame extends JFrame
 
    class NonEditableModel extends AbstractTableModel
    {
-      public String[] colNames = {"First Name", "Last Name", "Team", "Games",
+      public String[] colNames = {"First Name", "Last Name", "Team", "Pos", "Games",
             "Points", "Assists", "Rebounds", "Steals", "Blocks", "TurnOver",
             "Field Goals", "Three Pointers", "Free Throws", "Overall"};
       public Object[][] data = null;
@@ -486,11 +486,12 @@ public class FantasyFrame extends JFrame
 	           // relative rating
 	           Statement s1 = mConn.createStatement();
               ResultSet result = s1.executeQuery("select * "
-                                                + "From Stats S, Players P, Teams T "
+                                                + "From Stats S, Players P, Teams T, Positions Pos "
                                                 + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
                                                 + "AND S.Season = 2015 "
                                                 + GetToggleSettings()
                                                 + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster) "
+                                                + "AND Pos.pos = P.position1 "
                                                 + GetOrderBySettings()
                                                 );
 	           result.last();
@@ -501,6 +502,7 @@ public class FantasyFrame extends JFrame
 	           data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
 	           data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
 	           data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+              data[result.getRow()-1][colIndex++] = result.getString("Pos.abbrev");
 	           data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts         
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
@@ -509,9 +511,9 @@ public class FantasyFrame extends JFrame
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
-	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.Games"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
-              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.OVERALL"));
+              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.RELATIVE"));
 	      
 	           while (result.next())
 	           {
@@ -519,6 +521,7 @@ public class FantasyFrame extends JFrame
 	              data[result.getRow()-1][colIndex++] = result.getString("P.FirstName");
 	              data[result.getRow()-1][colIndex++] = result.getString("P.LastName");
 	              data[result.getRow()-1][colIndex++] = result.getString("T.Abbrev");
+                 data[result.getRow()-1][colIndex++] = result.getString("Pos.abbrev");
 	              data[result.getRow()-1][colIndex++] = result.getInt("S.Games");   // starts
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Points") / result.getDouble("S.Games"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Assists") / result.getDouble("S.Games"));
@@ -527,9 +530,9 @@ public class FantasyFrame extends JFrame
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.Blocks") / result.getDouble("S.Games"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TurnOver") / result.getDouble("S.Games"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
-	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
+	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.Games"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
-                 data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.OVERALL"));
+                 data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.RELATIVE"));
 	           }
 	           //fantasyModel.setRowCount(rowCount);
 	        	}
@@ -666,6 +669,10 @@ public class FantasyFrame extends JFrame
 	         playerModel.fireTableDataChanged();
 	         
 	      }
+         
+         NBACreateTable nbatab = new NBACreateTable(mConn);
+         nbatab.RefreshRelativeScore(mCurrentRound, mInternalRoundCount, totalRounds);
+         refreshList();
       }
    }
    
@@ -752,10 +759,8 @@ public class FantasyFrame extends JFrame
          
          double ftp = result.getDouble("ftp");
          
-         System.out.println("lol");
          } catch (SQLException s){
             s.printStackTrace();
-            System.out.println("LOL-messedup");
          }
 
    }
@@ -768,6 +773,20 @@ public class FantasyFrame extends JFrame
             OrderBy[1] = 'A';
          } else {
             OrderBy[0] = 'O';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Relative implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+
+         if(OrderBy[0] == 'V' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'V';
             OrderBy[1] = 'D';
          }
          refreshList();
@@ -999,7 +1018,6 @@ public class FantasyFrame extends JFrame
   private void refreshList(){
       fantasyModel.refreshDataWithQuery();
       fantasyModel.fireTableDataChanged();
-      System.out.println("Number of row from table: " + fantasyTable.getModel().getRowCount());
    }
    
    private String GetOrderBySettings(){
@@ -1047,6 +1065,9 @@ public class FantasyFrame extends JFrame
          case 'E':
             s = "S.GAMES ";
             break;
+         case 'V':
+            s= "S.RELATIVE ";
+            break;
          
       }
       
@@ -1055,8 +1076,8 @@ public class FantasyFrame extends JFrame
       } else {
          s += "ASC ";
       }
-      System.out.println(s);
-      return "ORDER BY " + s;
+      
+      return "ORDER BY " + s + ", S.OVERALL desc ";
    }
    
    private String GetToggleSettings(){
@@ -1098,7 +1119,6 @@ public class FantasyFrame extends JFrame
          }
          s = s + ")";
       }
-      System.out.println(s);
       return s + " ";
    }
    

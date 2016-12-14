@@ -170,7 +170,7 @@ public class NBACreateTable
     	 }
     	 else {
              bufferedReader = new BufferedReader(
-                     new FileReader("src/SQLInserts/build-" + tableName.toLowerCase() + ".sql")
+                     new FileReader("SQLInserts/build-" + tableName.toLowerCase() + ".sql")
                                         );    		 	 
     	 }
     	 
@@ -222,8 +222,10 @@ public class NBACreateTable
       
    }
    
-   public void AddOverallScore(){
+   public void RefreshRelativeScore(int roundsleft, int turn, int maxRounds){
       try {
+      System.out.println(roundsleft + ", " + turn + " / " + maxRounds);
+      
          Statement s = mConn.createStatement();
          ResultSet result = s.executeQuery(  "select " +
                                              "max(s.points/s.games) as ppg, " +
@@ -232,9 +234,10 @@ public class NBACreateTable
                                              "max(s.steals/s.games) as spg, " +
                                              "max(s.blocks/s.games) as bpg, " +
                                              "max(s.turnover/s.games) as tov, " +
-                                             "max(s.tpm) as tpm " +
+                                             "max(s.tpm/s.games) as tpm " +
                                              "from Stats s, Players p " + 
-                                             "where p.id = s.playerid && s.season = 2015 && s.games >= 60;" 
+                                             "where p.id = s.playerid && s.season = 2015 && s.games >= 60 " +
+                                             "AND p.Id NOT IN (SELECT Athlete FROM GameRoster)" 
                                           );
          result.next();
          double mppg = result.getDouble("ppg");
@@ -244,9 +247,133 @@ public class NBACreateTable
          double mbpg = result.getDouble("bpg");
          double mtov = result.getDouble("tov");
          double mtpm = result.getDouble("tpm");
-         System.out.println(mppg + " " + mtpm);
          
+         result = s.executeQuery( "select g.*, " 
+                                + "sum(s.points/s.games) as ppg, "
+                                + "sum(s.assists/s.games) as apg, "
+                                + "sum(s.rebounds/s.games) as rpg, "
+                                + "sum(s.steals/s.games) as spg, "
+                                + "sum(s.blocks/s.games) as bpg, "
+                                + "sum(s.turnover/s.games) as tpg, "
+                                + "sum(s.tpm/s.games) as 3pg, "
+                                + "sum(s.fgm)/sum(s.fga) as fgp, "
+                                + "sum(s.ftm)/sum(s.fta) as ftp, "
+                                + "sum(s.overall)/count(*) as overall "
+                                + "from GameRoster g, Stats s where s.playerid = g.athlete && s.season = 2015 group by g.userid;" );
+             
+         System.out.println(result.getRow()); 
+         double dppg = 0;
+         double dapg = 0;
+         double drpg = 0;
+         double dspg = 0;
+         double dbpg = 0;
+         double dtov = 0;
+         double dtpm = 0;
+         boolean works = false;
+                           
+         if(turn > 0){
+            if(result.next()){
+               dppg = result.getDouble("ppg");
+               dapg = result.getDouble("apg");
+               drpg = result.getDouble("rpg");
+               dspg = result.getDouble("spg");
+               dbpg = result.getDouble("bpg");
+               dtov = result.getDouble("tpg");
+               dtpm = result.getDouble("3pg");
+               if(result.next()){
+                  dppg = Math.abs(dppg - result.getDouble("ppg"));
+                  dapg = Math.abs(dapg - result.getDouble("apg"));
+                  drpg = Math.abs(drpg - result.getDouble("rpg"));
+                  dspg = Math.abs(dspg - result.getDouble("spg"));
+                  dbpg = Math.abs(dbpg - result.getDouble("bpg"));
+                  dtov = Math.abs(dtov - result.getDouble("tpg"));
+                  dtpm = Math.abs(dtpm - result.getDouble("3pg"));
+                  works = true;
+               }
+            } 
+         } 
+         
+         double ppg_rat = 1.00;
+         double apg_rat = 1.00;
+         double rpg_rat = 1.00;
+         double spg_rat = 1.00;
+         double bpg_rat = 1.00;
+         double tpg_rat = 1.00;
+         double pg3_rat = 1.00;
+         double fgp_rat = 1.00;
+         double ftp_rat = 1.00;
+         
+         int pl = (maxRounds - roundsleft) * 2;
+         if(turn == 2){
+            pl /= 2;
+            if(pl <= 0){
+               pl++;
+            }
+         }
+         
+         if(works == true){
+            System.out.println("Players Left: " + pl);
+            ppg_rat = Math.sqrt(mppg/(dppg/pl));
+            apg_rat = Math.sqrt(mapg/(dppg/pl));
+            rpg_rat = Math.sqrt(mrpg/(dppg/pl));
+            spg_rat = Math.sqrt(mspg/(dppg/pl));
+            bpg_rat = Math.sqrt(mbpg/(dppg/pl));
+            tpg_rat = Math.sqrt(mtov/(dtov/pl));
+            pg3_rat = Math.sqrt(mtpm/(dtpm/pl));
+            System.out.println("PPG: " + ppg_rat + "\nAPG: " + apg_rat + "\nRPG: " + rpg_rat + "\nSPG: " + spg_rat + "\nBPG: " + bpg_rat + "\nTPG: " + tpg_rat + "\n3PG: " + pg3_rat); 
+            System.out.println("Done?");
+         }
+         
+         s.executeUpdate(  "update Stats s set RELATIVE = (-10);");
+         
+         s.executeUpdate(  "update Stats s set RELATIVE = (" +
+                               "((((s.points/s.games) / " + mppg + ") * 10) * "+ ppg_rat +") + " +
+                               "((((s.assists/s.games) / " + mapg + ") * 10) * "+ apg_rat +") + " +
+                               "((((s.rebounds/s.games) / " + mrpg + ") * 10) * "+ rpg_rat +") + " +
+                               "((((s.steals/s.games) / " + mspg + ") * 10) * "+ spg_rat +") + " +
+                               "((((s.blocks/s.games) / " + mbpg + ") * 10) * "+ bpg_rat +") - " +
+                               "((((s.turnover/s.games) / " + mtov + ") * 10) * "+ tpg_rat +") + " +
+                               "((((s.tpm/s.games) / " + mtpm + ") * 10) * "+ pg3_rat +") " +
+                           ") where s.season = 2015 AND s.playerid NOT IN (SELECT Athlete FROM GameRoster);");                 
+                           
+         s.executeUpdate(  "update Stats s set RELATIVE = ( RELATIVE + ((((s.FGM/s.FGA) / .7) * 20) - 10)) where s.FGA > 40 AND s.season = 2015 AND s.playerid NOT IN (SELECT Athlete FROM GameRoster);");
+         s.executeUpdate(  "update Stats s set RELATIVE = ( RELATIVE + ((((s.FTM/s.FTA) / .9) * 20) - 10)) where s.FTA > 40 AND s.season = 2015 AND s.playerid NOT IN (SELECT Athlete FROM GameRoster);");
+         
+         result = s.executeQuery("select max(relative) as rel from Stats where season = 2015;");
+         result.next();
+         double maxOverall = result.getDouble("rel");
+         s.executeUpdate(  "update Stats s set RELATIVE = ((RELATIVE / " + maxOverall + ") * 100) where s.season = 2015 AND s.playerid NOT IN (SELECT Athlete FROM GameRoster);");
+      } catch(SQLException e){
+         e.printStackTrace();
+      }
+   }
+   
+   public void AddOverallScore(){
+      try {
+         Statement s = mConn.createStatement();
          s.executeUpdate(  "alter table Stats add OVERALL float;");
+         s.executeUpdate(  "alter table Stats add RELATIVE float;");
+         
+         ResultSet result = s.executeQuery(  "select " +
+                                             "max(s.points/s.games) as ppg, " +
+                                             "max(s.assists/s.games) as apg, " +
+                                             "max(s.rebounds/s.games) as rpg, " +
+                                             "max(s.steals/s.games) as spg, " +
+                                             "max(s.blocks/s.games) as bpg, " +
+                                             "max(s.turnover/s.games) as tov, " +
+                                             "max(s.tpm/s.games) as tpm " +
+                                             "from Stats s, Players p " + 
+                                             "where p.id = s.playerid && s.season = 2015 && s.games >= 60 " +
+                                             "AND p.Id NOT IN (SELECT Athlete FROM GameRoster)" 
+                                          );
+         result.next();
+         double mppg = result.getDouble("ppg");
+         double mapg = result.getDouble("apg");
+         double mrpg = result.getDouble("rpg");
+         double mspg = result.getDouble("spg");
+         double mbpg = result.getDouble("bpg");
+         double mtov = result.getDouble("tov");
+         double mtpm = result.getDouble("tpm");
          
          s.executeUpdate(  "update Stats s set OVERALL = (" +
                                "((((s.points/s.games) / " + mppg + ") * 10) * 1) + " +
@@ -255,7 +382,7 @@ public class NBACreateTable
                                "((((s.steals/s.games) / " + mspg + ") * 10) * 1) + " +
                                "((((s.blocks/s.games) / " + mbpg + ") * 10) * 1) - " +
                                "((((s.turnover/s.games) / " + mtov + ") * 10) * 1) + " +
-                               "(((s.tpm / " + mtpm + ") * 10) * 1) " +
+                               "((((s.tpm/s.games) / " + mtpm + ") * 10) * 1) " +
                            ");"); 
          s.executeUpdate(  "update Stats s set OVERALL = ( OVERALL + ((((s.FGM/s.FGA) / .7) * 20) - 10)) where s.FGA > 40;");
          s.executeUpdate(  "update Stats s set OVERALL = ( OVERALL + ((((s.FTM/s.FTA) / .9) * 20) - 10)) where s.FTA > 40;");
@@ -263,13 +390,13 @@ public class NBACreateTable
          result = s.executeQuery("select max(overall) as over from Stats;");
          result.next();
          double maxOverall = result.getDouble("over");
-         System.out.println(maxOverall);
          s.executeUpdate(  "update Stats s set OVERALL = ((OVERALL / " + maxOverall + ") * 100);");
-                                    
          
          
+         RefreshRelativeScore(0, 1, 1);
       } catch (SQLException e) {
          e.printStackTrace();
       }
    }
+
 }

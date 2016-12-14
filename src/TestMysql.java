@@ -67,7 +67,7 @@ public class TestMysql
             if (flag == false)
             {
                createTable.createTables(tableNames.get(i));
-               if(tableNames.get(i).equalsIgnoreCase("Stats")){
+               if(tableNames.get(i).equalsIgnoreCase("GameRoster")){
                   createTable.AddOverallScore();
                }
                if (tableNames.get(i).equals("CurrentGame"))
