@@ -45,6 +45,8 @@ public class FantasyFrame extends JFrame
    private boolean toggle_PF = false;
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
+   private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
+
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
    {
@@ -370,7 +372,7 @@ public class FantasyFrame extends JFrame
    {
       public String[] colNames = {"First Name", "Last Name", "Team", "Games",
             "Points", "Assists", "Rebounds", "Steals", "Blocks", "TurnOver",
-            "Field Goals", "Three Pointers", "Free Throws"};
+            "Field Goals", "Three Pointers", "Free Throws", "Overall"};
       public Object[][] data = null;
       public int rowCount = 0;
       
@@ -422,12 +424,14 @@ public class FantasyFrame extends JFrame
 	           // overall score?
 	           // relative rating
 	           Statement s1 = mConn.createStatement();
-	           ResultSet result = s1.executeQuery("select * "
-	                                            + "From Stats S, Players P, Teams T "
-	                                            + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
-	                                            + "AND S.Season = 2015 "
-	                                            + GetToggleSettings()
-	                                            + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster)");
+              ResultSet result = s1.executeQuery("select * "
+                                                + "From Stats S, Players P, Teams T "
+                                                + "WHERE P.Id = S.PlayerId AND T.Id = P.TeamId "
+                                                + "AND S.Season = 2015 "
+                                                + GetToggleSettings()
+                                                + "AND P.Id NOT IN (SELECT Athlete FROM GameRoster) "
+                                                + GetOrderBySettings()
+                                                );
 	           result.last();
 	           rowCount = result.getRow();
 	           data = new Object[rowCount][colNames.length];
@@ -446,6 +450,7 @@ public class FantasyFrame extends JFrame
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
 	           data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
+              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.OVERALL"));
 	      
 	           while (result.next())
 	           {
@@ -463,7 +468,8 @@ public class FantasyFrame extends JFrame
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FGM") / result.getDouble("S.FGA"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
-	              //System.out.println("string");
+                 data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.OVERALL"));
+	              System.out.println("string");
 	           }
 	           //fantasyModel.setRowCount(rowCount);
 	        	}
@@ -658,15 +664,206 @@ public class FantasyFrame extends JFrame
    private class TogglePointGuard implements ActionListener{
       @Override
       public void actionPerformed(ActionEvent rad){
-         toggle_PG = !toggle_PG;
-         System.out.println("Number of rows: "+ fantasyModel.rowCount);
-         refreshList();
-         //fantasyModel.fireTableDataChanged();
-         System.out.println("called rfresh list\n");
-         System.out.println("Number of rows: "+ fantasyModel.rowCount);
 
+         if(OrderBy[0] == 'I' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'I';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
       }
    }
+   
+   private class OrderBy_Points implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'P' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'P';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Assists implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'A' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'A';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Rebounds implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'R' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'R';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Steals implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'S' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'S';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Blocks implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'B' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'B';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_TurnOvers implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'T' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'T';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_FGPercent implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'G' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'G';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_FTPercent implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'F' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'F';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_3PM implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == '3' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = '3';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_FirstName implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'N' && OrderBy[1] == 'A'){
+            OrderBy[1] = 'D';
+         } else {
+            OrderBy[0] = 'N';
+            OrderBy[1] = 'A';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_LastName implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'L' && OrderBy[1] == 'A'){
+            OrderBy[1] = 'D';
+         } else {
+            OrderBy[0] = 'L';
+            OrderBy[1] = 'A';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Team implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'M' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'M';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Games implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'E' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'E';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   private class OrderBy_Position implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         if(OrderBy[0] == 'I' && OrderBy[1] == 'D'){
+            OrderBy[1] = 'A';
+         } else {
+            OrderBy[0] = 'I';
+            OrderBy[1] = 'D';
+         }
+         refreshList();
+      }
+   }
+   
+   /*private class TogglePointGuard implements ActionListener{
+      @Override
+      public void actionPerformed(ActionEvent rad){
+         toggle_PG = !toggle_PG;
+         refreshList();
+      }
+   }*/
    
    private class ToggleShootingGuard implements ActionListener{
       @Override
@@ -704,6 +901,63 @@ public class FantasyFrame extends JFrame
       fantasyModel.refreshDataWithQuery();
       fantasyModel.fireTableDataChanged();
       System.out.println("Number of row from table: " + fantasyTable.getModel().getRowCount());
+   }
+   
+   private String GetOrderBySettings(){
+      String s = "OVERALL DESC";
+      switch(OrderBy[0]){
+         case 'O': 
+            s = "OVERALL ";
+            break;
+         case 'P':
+            s = "(S.POINTS/S.GAMES) ";
+            break;
+         case 'A':
+            s = "(S.ASSISTS/S.GAMES) ";
+            break;
+         case 'R':
+            s = "(S.REBOUNDS/S.GAMES) ";
+            break;
+         case 'S':
+            s = "(S.STEALS/S.GAMES) ";
+            break;
+         case 'B':
+            s = "(S.BLOCKS/S.GAMES) ";
+            break;
+         case 'T':
+            s = "(S.TURNOVER/S.GAMES) ";
+            break;
+         case 'G':
+            s = "(S.FGM/S.FGA) ";
+            break;
+         case 'F':
+            s = "(S.FTM/S.FTA) ";
+            break;
+         case '3':
+            s = "(S.TPM) ";
+            break;
+         case 'I':
+            s = "P.Position1 ";
+            break;
+         case 'N':
+            s = "P.FIRSTNAME ";
+            break;
+         case 'L':
+            s = "P.LASTNAME ";
+            break;
+         case 'E':
+            s = "S.GAMES ";
+            break;
+         
+      }
+      
+      if(OrderBy[1] == 'D'){
+         s += "DESC ";
+      } else {
+         s += "ASC ";
+      }
+      System.out.println(s);
+      return "ORDER BY " + s;
    }
    
    private String GetToggleSettings(){

@@ -166,11 +166,11 @@ public class NBACreateTable
     	 if ((System.getProperty("os.name").toString().contains("Windows"))) {
           bufferedReader = new BufferedReader(
                                          new FileReader("src\\SQLInserts\\build-" + tableName.toLowerCase() + ".sql")
-                                                            );
+                                         );
     	 }
     	 else {
              bufferedReader = new BufferedReader(
-                     new FileReader("src/SQLInserts/build-" + tableName.toLowerCase() + ".sql")
+                     new FileReader("SQLInserts/build-" + tableName.toLowerCase() + ".sql")
                                         );    		 	 
     	 }
     	 
@@ -199,8 +199,6 @@ public class NBACreateTable
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
-
-      
           
    }
    public static void removeTables(Connection conn)
@@ -222,5 +220,56 @@ public class NBACreateTable
          e.printStackTrace();
       }
       
+   }
+   
+   public void AddOverallScore(){
+      try {
+         Statement s = mConn.createStatement();
+         ResultSet result = s.executeQuery(  "select " +
+                                             "max(s.points/s.games) as ppg, " +
+                                             "max(s.assists/s.games) as apg, " +
+                                             "max(s.rebounds/s.games) as rpg, " +
+                                             "max(s.steals/s.games) as spg, " +
+                                             "max(s.blocks/s.games) as bpg, " +
+                                             "max(s.turnover/s.games) as tov, " +
+                                             "max(s.tpm) as tpm " +
+                                             "from Stats s, Players p " + 
+                                             "where p.id = s.playerid && s.season = 2015 && s.games >= 60;" 
+                                          );
+         result.next();
+         double mppg = result.getDouble("ppg");
+         double mapg = result.getDouble("apg");
+         double mrpg = result.getDouble("rpg");
+         double mspg = result.getDouble("spg");
+         double mbpg = result.getDouble("bpg");
+         double mtov = result.getDouble("tov");
+         double mtpm = result.getDouble("tpm");
+         System.out.println(mppg + " " + mtpm);
+         
+         s.executeUpdate(  "alter table Stats add OVERALL float;");
+         
+         s.executeUpdate(  "update Stats s set OVERALL = (" +
+                               "((((s.points/s.games) / " + mppg + ") * 10) * 1) + " +
+                               "((((s.assists/s.games) / " + mapg + ") * 10) * 1) + " +
+                               "((((s.rebounds/s.games) / " + mrpg + ") * 10) * 1) + " +
+                               "((((s.steals/s.games) / " + mspg + ") * 10) * 1) + " +
+                               "((((s.blocks/s.games) / " + mbpg + ") * 10) * 1) - " +
+                               "((((s.turnover/s.games) / " + mtov + ") * 10) * 1) + " +
+                               "(((s.tpm / " + mtpm + ") * 10) * 1) " +
+                           ");"); 
+         s.executeUpdate(  "update Stats s set OVERALL = ( OVERALL + ((((s.FGM/s.FGA) / .7) * 20) - 10)) where s.FGA > 40;");
+         s.executeUpdate(  "update Stats s set OVERALL = ( OVERALL + ((((s.FTM/s.FTA) / .9) * 20) - 10)) where s.FTA > 40;");
+         
+         result = s.executeQuery("select max(overall) as over from Stats;");
+         result.next();
+         double maxOverall = result.getDouble("over");
+         System.out.println(maxOverall);
+         s.executeUpdate(  "update Stats s set OVERALL = ((OVERALL / " + maxOverall + ") * 100);");
+                                    
+         
+         
+      } catch (SQLException e) {
+         e.printStackTrace();
+      }
    }
 }
