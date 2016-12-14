@@ -651,6 +651,7 @@ public class FantasyFrame extends JFrame
          {
             a.createTables(a.getTableNames().get(i));
          }
+         a.AddOverallScore();
          Point currentLoc = getLocation();
          dispose();
          //setVisible(false);
