@@ -732,10 +732,10 @@ public class FantasyFrame extends JFrame
       @Override
       public void actionPerformed(ActionEvent rad){
 
-         if(OrderBy[0] == 'I' && OrderBy[1] == 'D'){
+         if(OrderBy[0] == 'O' && OrderBy[1] == 'D'){
             OrderBy[1] = 'A';
          } else {
-            OrderBy[0] = 'I';
+            OrderBy[0] = 'O';
             OrderBy[1] = 'D';
          }
          refreshList();
