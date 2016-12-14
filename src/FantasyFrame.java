@@ -25,7 +25,7 @@ import javax.swing.table.TableRowSorter;
 
 public class FantasyFrame extends JFrame
 {
-   private int DimSizeX = 800; // 1500 for windows, 750 for other
+   private int DimSizeX = 1500; // 1500 for windows, 750 for other
    private int DimSizeY = 800; // 450 for windows, 350 for other
    private int mCurrentRound;
    private Player player1, player2;
@@ -388,6 +388,23 @@ public class FantasyFrame extends JFrame
       JButton freethrowP = new JButton("FreeThrow%");
       JButton Overall = new JButton("Overall");
       JButton Relative = new JButton("Relative");
+      firstName.addActionListener(new OrderBy_FirstName());
+      lastName.addActionListener(new OrderBy_LastName());
+      team.addActionListener(new OrderBy_Team());
+      games.addActionListener(new OrderBy_Games());
+      positions.addActionListener(new OrderBy_Position());
+      points.addActionListener(new OrderBy_Points());
+      assists.addActionListener(new OrderBy_Assists());
+      rebounds.addActionListener(new OrderBy_Rebounds());
+      steals.addActionListener(new OrderBy_Steals());
+      blocks.addActionListener(new OrderBy_Blocks());
+      turnover.addActionListener(new OrderBy_TurnOvers());
+      fieldGoalP.addActionListener(new OrderBy_FGPercent());
+      freethrowP.addActionListener(new OrderBy_FTPercent());
+      Overall.addActionListener(new OrderBy_Overall());
+      Relative.addActionListener(new OrderBy_FirstName());
+      
+
       orderPanel.add(firstName);
       orderPanel.add(lastName);
       orderPanel.add(team);
@@ -509,7 +526,6 @@ public class FantasyFrame extends JFrame
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.TPM") / result.getDouble("S.TPA"));
 	              data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.FTM") / result.getDouble("S.FTA"));
                  data[result.getRow()-1][colIndex++] = roundMyNum(result.getDouble("S.OVERALL"));
-	              System.out.println("string");
 	           }
 	           //fantasyModel.setRowCount(rowCount);
 	        	}
@@ -712,7 +728,7 @@ public class FantasyFrame extends JFrame
 
    }
    
-   private class TogglePointGuard implements ActionListener{
+   private class OrderBy_Overall implements ActionListener{
       @Override
       public void actionPerformed(ActionEvent rad){
 
@@ -908,13 +924,13 @@ public class FantasyFrame extends JFrame
       }
    }
    
-   /*private class TogglePointGuard implements ActionListener{
+   private class TogglePointGuard implements ActionListener{
       @Override
       public void actionPerformed(ActionEvent rad){
          toggle_PG = !toggle_PG;
          refreshList();
       }
-   }*/
+   }
    
    private class ToggleShootingGuard implements ActionListener{
       @Override
