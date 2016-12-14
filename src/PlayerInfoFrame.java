@@ -69,14 +69,20 @@ public class PlayerInfoFrame extends JFrame
       // top size + border + design
       top = new JPanel();
       top.setPreferredSize(new Dimension(1500, 450));
-      top.setLayout(new GridLayout(2,1));
+      top.setLayout(new BorderLayout());
       top.setBorder(new EtchedBorder());
+      
+      //welcome label
+      JLabel welcome = new JLabel("Welcome to NBA Fantasy Draft!");
+      welcome.setHorizontalAlignment(SwingConstants.CENTER);
+      top.add(welcome, BorderLayout.NORTH);
 
       // top label
-      JPanel header = new JPanel();
+      JPanel header = new JPanel(new GridLayout(2, 1));
       JLabel player1Label = new JLabel("Enter Player 1 Information");
+      player1Label.setHorizontalAlignment(SwingConstants.CENTER);
       header.add(player1Label);
-      top.add(header);
+
 
       // enter player name
       JPanel namePanel = new JPanel();
@@ -84,7 +90,12 @@ public class PlayerInfoFrame extends JFrame
       player1Name = new JTextField(16);
       namePanel.add(playerNameLabel);
       namePanel.add(player1Name);
-      top.add(namePanel);
+      header.add(namePanel);
+      top.add(header, BorderLayout.CENTER);
+      
+      
+      JLabel image1 = new JLabel(new ImageIcon("src/Images/image1.jpg"));
+      top.add(image1, BorderLayout.WEST);
 
       // add to frame
       getContentPane().add(top, BorderLayout.NORTH);
@@ -96,14 +107,18 @@ public class PlayerInfoFrame extends JFrame
       // bottom size + border + design
       bottom = new JPanel();
       bottom.setPreferredSize(new Dimension(1500, 450));
-      bottom.setLayout(new GridLayout(3,1));
+      bottom.setLayout(new BorderLayout());
       bottom.setBorder(new EtchedBorder());
       
+      JLabel welcome = new JLabel("");
+      welcome.setHorizontalAlignment(SwingConstants.CENTER);
+      bottom.add(welcome, BorderLayout.NORTH);
+      
       //bottom label
-      JPanel header = new JPanel();
+      JPanel header = new JPanel(new GridLayout(2,1));
       JLabel player2Label = new JLabel("Enter Player 2 Information");
+      player2Label.setHorizontalAlignment(SwingConstants.CENTER);
       header.add(player2Label);
-      bottom.add(header);
 
       // enter player name
       JPanel namePanel = new JPanel();
@@ -111,16 +126,19 @@ public class PlayerInfoFrame extends JFrame
       player2Name = new JTextField(16);
       namePanel.add(playerNameLabel);
       namePanel.add(player2Name);
-      bottom.add(namePanel);
-      
+      header.add(namePanel);
+      bottom.add(header, BorderLayout.CENTER);
       //submit button
       JPanel submitPanel = new JPanel();
       JButton submit = new JButton("Submit");
       submit.setSize(new Dimension(1,50));
       submit.setToolTipText("Click when both Players' information has been entered");
       submitPanel.add(submit);
-      bottom.add(submitPanel);
+      bottom.add(submitPanel, BorderLayout.SOUTH);
       submit.addActionListener(new SubmitOnClickListener());
+      
+      JLabel image2 = new JLabel(new ImageIcon("src/Images/image2.jpg"));
+      bottom.add(image2, BorderLayout.EAST);
 
       // add to frame
       getContentPane().add(bottom, BorderLayout.SOUTH);
