@@ -46,7 +46,7 @@ public class FantasyFrame extends JFrame
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
    private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
-   private static int totalRounds = 10;
+   private static int totalRounds = 5;
    private JLabel detailFN;
    private JButton draftButton;
 
@@ -220,7 +220,7 @@ public class FantasyFrame extends JFrame
       c.weighty = 1;
       gridbag.setConstraints(player2List, c);
       player2Info.add(player2List);
-              
+
       playerInfoPanel.add(player1Info);
       playerInfoPanel.add(player2Info);
       EastPanel.add(playerInfoPanel);
@@ -644,8 +644,7 @@ public class FantasyFrame extends JFrame
             {
                System.out.println(ee);
             }
-	            
-	            
+	               
 	         
 	         if (mCurrentRound == totalRounds)
 	         {
@@ -1059,9 +1058,9 @@ public class FantasyFrame extends JFrame
    }
    
    private String GetToggleSettings(){
-      String s = "";
+      String s = " AND P.Position1 != 4 ";
       if(toggle_C || toggle_PG || toggle_SF || toggle_PF || toggle_SG){
-         s = "AND (";
+         s = s + "AND (";
          int toggleCount = 0;
          if(toggle_PG){
             toggleCount++;
@@ -1128,9 +1127,9 @@ public class FantasyFrame extends JFrame
 	           if (result.last()) {
 	        	   do
 	        	   {
-	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getInt("S.Games"),
-	        				   result.getInt("S.Points"), result.getInt("S.Assists"), result.getInt("S.Rebounds"),
-	        				   result.getInt("S.Steals"), result.getInt("S.Blocks"));
+	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getDouble("S.Games"),
+	        				   result.getDouble("S.Points"), result.getDouble("S.Assists"), result.getDouble("S.Rebounds"),
+	        				   result.getDouble("S.Steals"), result.getDouble("S.Blocks"));
 	        	   } while (result.previous());
 	           }
 	        } 
@@ -1143,8 +1142,8 @@ public class FantasyFrame extends JFrame
 	       
 	    	fireTableDataChanged();
 	    }
-	    public void setValueAtt(int row, String season, int games, int points, 
-	    		int assists, int rebounds, int steals, int blocks) {
+	    public void setValueAtt(int row, String season, double games, double points, 
+	    		double assists, double rebounds, double steals, double blocks) {
 	        singleAthleteData[row][0] = season;
 	        singleAthleteData[row][1] = games;
 	        singleAthleteData[row][2] = roundMyNum (points / games);
