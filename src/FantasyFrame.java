@@ -142,7 +142,7 @@ public class FantasyFrame extends JFrame
       GridBagConstraints c = new GridBagConstraints();
       //c.fill = GridBagConstraints.HORIZONTAL; 
       
-      title = new JLabel("Round " + mCurrentRound + "/" + totalRounds);
+      title = new JLabel("Round " + (mCurrentRound + 1) + "/" + totalRounds);
       title.setFont(title.getFont().deriveFont(32f));
       c.weightx = 0.0;
       c.gridx = 0;
@@ -655,7 +655,7 @@ public class FantasyFrame extends JFrame
 	            mInternalRoundCount = 1;
 	            mCurrentRound++;
 	            //update current playrsr round? field might not be needed.
-	            title.setText("Round " + mCurrentRound + "/" + totalRounds);
+	            title.setText("Round " + (mCurrentRound + 1) + "/" + totalRounds);
 	         }
 	         
 	        //update the roundCount to Sql

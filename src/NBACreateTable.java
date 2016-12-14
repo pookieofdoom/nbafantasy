@@ -114,7 +114,7 @@ public class NBACreateTable
          else if (tableName.equals("CurrentGame"))
          {
             table = table + "(UserId INT,"
-                          + "UserName VARCHAR(16),"
+                          + "UserName VARCHAR(30),"
                           + "Round INT,"
                           + "Turn CHAR(1),"
                           + "PRIMARY KEY (UserId),"
@@ -170,7 +170,7 @@ public class NBACreateTable
     	 }
     	 else {
              bufferedReader = new BufferedReader(
-                     new FileReader("SQLInserts/build-" + tableName.toLowerCase() + ".sql")
+                     new FileReader("src/SQLInserts/build-" + tableName.toLowerCase() + ".sql")
                                         );    		 	 
     	 }
     	 

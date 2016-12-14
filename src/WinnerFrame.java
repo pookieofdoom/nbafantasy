@@ -12,14 +12,15 @@ import javax.swing.table.AbstractTableModel;
 
 public class WinnerFrame extends JFrame
 {
-   private int             DimSizeX = 500;                   // 1500 for
+   private int             DimSizeX = 1100;                   // 1500 for
                                                              // windows, 750 for
                                                              // other
-   private int             DimSizeY = 200;                   // 450 for windows,
+   private int             DimSizeY = 300;                   // 450 for windows,
                                                              // 350 for other
    private Connection      mConn;
    private Player          mPlayer1;
    private Player          mPlayer2;
+   private JLabel          winnerLabel;
    private JPanel          WestPanel, EastPanel, CenterPanel;
    private FinalScoreModel finalScoreModel;
 
@@ -63,7 +64,8 @@ public class WinnerFrame extends JFrame
       WestPanel = new JPanel();
       EastPanel = new JPanel();
       CenterPanel = new JPanel();
-      JButton winnerButton = new JButton("WINNER?");
+      //winnerLabel = new JLabel("The winner is ...");
+      //JButton winnerButton = new JButton("WINNER?");
       createEastPanel();
       createWestPanel();
       createCenterPanel();
@@ -174,7 +176,50 @@ public class WinnerFrame extends JFrame
       JTable finalScoreTable = new JTable(finalScoreModel);
       finalScoreTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       JScrollPane playerScrollPane = new JScrollPane(finalScoreTable);
+      finalScoreTable.setPreferredScrollableViewportSize(new Dimension(800,50));
+      finalScoreTable.doLayout();
+      
       CenterPanel.add(playerScrollPane);
+      //double player1Score = (double) finalScoreModel.getValueAt(0, 10);
+      String winner = findWinnerFromModel(finalScoreModel);
+      winnerLabel = new JLabel("The winner is " + winner);
+      CenterPanel.add(winnerLabel);
+      
+   }
+   
+   private String findWinnerFromModel (FinalScoreModel model) {
+	   int winAscCols[] = {1,2,3,4,5,7,8,9};
+	   int winDescCol = 6;
+	   int player1ColWins = 0, player2ColWins = 0;
+	   String retVal = "";
+	   //comparing ascending column value wins
+	   for (int col = 0; col < winAscCols.length; col++) {
+		   if ((double) model.getValueAt(0, winAscCols[col]) > (double) model.getValueAt(1, winAscCols[col])) {
+			   player1ColWins++;
+		   }
+		   else if ((double) model.getValueAt(0, winAscCols[col]) < (double) model.getValueAt(1, winAscCols[col])) {
+			   player2ColWins++;
+		   }
+	   }
+	   //comparing descending column value wins. turnovers
+	   if ((double) model.getValueAt(0, winDescCol) > (double) model.getValueAt(1, winDescCol)) {
+		   player2ColWins++;
+	   }
+	   else if ((double) model.getValueAt(0, winDescCol) < (double) model.getValueAt(1, winDescCol)) {
+		   player1ColWins++;
+	   }
+	   
+	   if (player1ColWins > player2ColWins) {
+		   retVal = mPlayer1.getName() + "! " + player1ColWins + " column wins versus " + player2ColWins + " column wins.";
+	   }
+	   else if (player1ColWins < player2ColWins) {
+		   retVal = mPlayer2.getName() + "! " + player2ColWins + " column wins versus " + player1ColWins + " column wins.";
+	   }
+	   else {
+		   retVal = "a tie! " + mPlayer1.getName() + " " + " and " + "  " + mPlayer2.getName() + " tied";
+	   }
+	   return retVal;
+	   
    }
 
    class FinalScoreModel extends AbstractTableModel
