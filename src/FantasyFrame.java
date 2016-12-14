@@ -488,7 +488,16 @@ public class FantasyFrame extends JFrame
 	    }
 
 	    public Object getValueAt(int row, int col) {
-	        return data[row][col];
+	    	
+	    	Object retVal = null;
+	    	try {
+	    		retVal = data[row][col];
+	    	}
+	    	catch (Exception e) {
+	        	System.out.println("could not fetch data.\n");
+	        }
+		    return retVal;
+
 	    }
 	    
 	    void refreshDataWithQuery() {
@@ -554,11 +563,15 @@ public class FantasyFrame extends JFrame
 	      	  System.out.println(e);
 	        	}	    	
 	    }
-	    @Override
-	    public Class<?> getColumnClass(int columnIndex) {
-
-	        return getValueAt(0, columnIndex).getClass();
-	    }
+//	    @Override
+//	    public Class<?> getColumnClass(int columnIndex) {
+//	    	try {
+//	        return getValueAt(0, columnIndex).getClass();
+//	    	}
+//	    	catch (Exception e) {
+//	    		return null;
+//	    	}
+//	    }
 
    }
    
