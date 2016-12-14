@@ -23,6 +23,7 @@ public class WinnerFrame extends JFrame
    private JLabel          winnerLabel;
    private JPanel          WestPanel, EastPanel, CenterPanel;
    private FinalScoreModel finalScoreModel;
+   private Player          mWinnerPlayer;
 
    public WinnerFrame(Connection conn, Player player1, Player player2)
    {
@@ -63,7 +64,7 @@ public class WinnerFrame extends JFrame
       setLayout(new BorderLayout());
       WestPanel = new JPanel();
       EastPanel = new JPanel();
-      CenterPanel = new JPanel();
+      CenterPanel = new JPanel(new BorderLayout());
       //winnerLabel = new JLabel("The winner is ...");
       //JButton winnerButton = new JButton("WINNER?");
       createEastPanel();
@@ -88,7 +89,7 @@ public class WinnerFrame extends JFrame
    {
 
       GridBagLayout gridbag = new GridBagLayout();
-      JPanel player2Info = new JPanel(new GridLayout(2, 1));
+      JPanel player2Info = new JPanel(gridbag);
       GridBagConstraints c = new GridBagConstraints();
       JList player2List;
 
@@ -128,7 +129,6 @@ public class WinnerFrame extends JFrame
 
    private void createWestPanel()
    {
-      JPanel playerInfoPanel = new JPanel(new GridLayout(1, 2));
       GridBagLayout gridbag = new GridBagLayout();
       JPanel player1Info = new JPanel(gridbag);
       GridBagConstraints c = new GridBagConstraints();
@@ -172,6 +172,7 @@ public class WinnerFrame extends JFrame
 
    private void createCenterPanel()
    {
+      JPanel a = new JPanel(new BorderLayout());
       finalScoreModel = new FinalScoreModel();
       JTable finalScoreTable = new JTable(finalScoreModel);
       finalScoreTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -179,11 +180,35 @@ public class WinnerFrame extends JFrame
       finalScoreTable.setPreferredScrollableViewportSize(new Dimension(800,50));
       finalScoreTable.doLayout();
       
-      CenterPanel.add(playerScrollPane);
+      CenterPanel.add(playerScrollPane, BorderLayout.NORTH);
       //double player1Score = (double) finalScoreModel.getValueAt(0, 10);
       String winner = findWinnerFromModel(finalScoreModel);
       winnerLabel = new JLabel("The winner is " + winner);
-      CenterPanel.add(winnerLabel);
+      winnerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      CenterPanel.add(winnerLabel, BorderLayout.CENTER);
+      
+      String imageUrl = "";
+      if ((System.getProperty("os.name").toString().contains("Windows"))) {
+         imageUrl = "src\\Images\\trophy2.jpg";
+      }
+      else
+      {
+         imageUrl = "src/Images/trophy2.jpg";
+      }
+      
+      JLabel sup = new JLabel(new ImageIcon(imageUrl));
+      
+      if (mWinnerPlayer == null)
+         sup.setHorizontalAlignment(SwingConstants.CENTER);
+      else if (mWinnerPlayer.equals(mPlayer1))
+         sup.setHorizontalAlignment(SwingConstants.LEFT);
+      else if (mWinnerPlayer.equals(mPlayer1))
+         sup.setHorizontalAlignment(SwingConstants.RIGHT);
+
+      
+      CenterPanel.add(sup, BorderLayout.SOUTH);
+      
+      //CenterPanel.add(a);
       
    }
    
@@ -211,12 +236,15 @@ public class WinnerFrame extends JFrame
 	   
 	   if (player1ColWins > player2ColWins) {
 		   retVal = mPlayer1.getName() + "! " + player1ColWins + " column wins versus " + player2ColWins + " column wins.";
+		   mWinnerPlayer = mPlayer1;
 	   }
 	   else if (player1ColWins < player2ColWins) {
 		   retVal = mPlayer2.getName() + "! " + player2ColWins + " column wins versus " + player1ColWins + " column wins.";
+		   mWinnerPlayer = mPlayer2;
 	   }
 	   else {
 		   retVal = "a tie! " + mPlayer1.getName() + " " + " and " + "  " + mPlayer2.getName() + " tied";
+		   mWinnerPlayer = null;
 	   }
 	   return retVal;
 	   
