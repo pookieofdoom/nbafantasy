@@ -46,7 +46,9 @@ public class FantasyFrame extends JFrame
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
    private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
-   private static int totalRounds = 5;
+
+   private static int totalRounds = 2;
+
    private JLabel detailFN;
    private JButton draftButton;
 
@@ -646,7 +648,7 @@ public class FantasyFrame extends JFrame
             }
 	               
 	         
-	         if (mCurrentRound == totalRounds)
+	         if (mCurrentRound >= totalRounds)
 	         {
 	            Point currentLoc = getLocation();
 	            setVisible(false);
