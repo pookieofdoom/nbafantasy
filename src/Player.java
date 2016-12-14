@@ -56,5 +56,22 @@ public class Player
       return userId;
    }
    
+   public void updateSqlTurn(Connection conn) {
+	   int turn = 0;
+	   if (mCurrentTurn) {
+		   turn = 1;
+	   }
+       try
+       {
+         Statement s1 = conn.createStatement();
+         s1.executeUpdate("UPDATE CurrentGame SET Turn = " + turn 
+                                          + " WHERE UserName = '" + mName + "'");
+       } 
+       catch (SQLException e)
+       {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+       }	      
+   }
    
 }

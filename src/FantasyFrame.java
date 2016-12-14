@@ -48,6 +48,7 @@ public class FantasyFrame extends JFrame
    private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
    private static int totalRounds = 10;
    private JLabel detailFN;
+   private JButton draftButton;
 
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
@@ -272,7 +273,7 @@ public class FantasyFrame extends JFrame
       detailInfo.add(restartEverything, BorderLayout.LINE_END);
       detailPanel.add(detailInfo, BorderLayout.NORTH);
       
-      JButton draftButton = new JButton("Draft");
+      draftButton = new JButton("Draft");
       draftButton.setBackground(Color.ORANGE);      
       detailPanel.add(draftButton, BorderLayout.SOUTH);
       
@@ -339,6 +340,7 @@ public class FantasyFrame extends JFrame
                 mSelectedFN = (String) fantasyTable.getModel().getValueAt(row, 0);
                 mSelectedLN = (String) fantasyTable.getModel().getValueAt(row, 1);
                 detailFN.setText(mSelectedFN + " " + mSelectedLN);
+                draftButton.setText("Draft " + mSelectedFN + " " + mSelectedLN);
                 mSelectedRow = row;
 
              }
@@ -588,11 +590,8 @@ public class FantasyFrame extends JFrame
       public void actionPerformed(ActionEvent arg0)
       {
          //insert into GameRoster table
-    	 //System.out.println("Before");
          insertIntoGameRoster();
-         //System.out.println("After");
-         //remove row from Table since athlete has now been chosen
-         //todo ((NonEditableModel)table.getModel()).removeRow(mSelectedRow);
+         /*null check for players once drafted*/
          if (mSelectedFN != null) {
 	         fantasyModel.removeRow(mSelectedFN, mSelectedLN);
 	         if (mCurrentPlayer.getName().equals(player1.getName()))
@@ -610,6 +609,10 @@ public class FantasyFrame extends JFrame
 	         
 	         player1.setCurrentTurn(!player1.getCurrentTurn());
 	         player2.setCurrentTurn(!player2.getCurrentTurn());
+	         //given a player and boolean then set the appropiate in player class
+	         player1.updateSqlTurn(mConn);
+	         player2.updateSqlTurn(mConn);
+	         
 	         if (player1.getCurrentTurn())
 	            mCurrentPlayer = player1;     
 	         
@@ -625,9 +628,25 @@ public class FantasyFrame extends JFrame
 	            mInternalRoundCount = 1;
 	            mCurrentRound++;
 	            //update current playrsr round? field might not be needed.
-	
 	            title.setText("Round " + mCurrentRound + "/" + totalRounds);
 	         }
+	         
+	        //update the roundCount to Sql
+            try
+            {
+               Statement s1 = mConn.createStatement();
+               s1.executeUpdate("UPDATE CurrentGame SET round = " + mCurrentRound +
+            		   " WHERE UserName = " + "'" + player1.getName() + "'" );
+               s1.executeUpdate("UPDATE CurrentGame SET round = " + mCurrentRound +
+            		   " WHERE UserName = " + "'" + player2.getName() + "'" );
+            }
+            catch (Exception ee)
+            {
+               System.out.println(ee);
+            }
+	            
+	            
+	         
 	         if (mCurrentRound == totalRounds)
 	         {
 	            Point currentLoc = getLocation();
@@ -641,8 +660,10 @@ public class FantasyFrame extends JFrame
 	         /*resets the individual athelete panel*/
 	         detailFN.setText("");
 	         mSelectedFN = null;
+	         draftButton.setText("Draft");
 	         playerModel.resetPlayerStatTable();
 	         playerModel.fireTableDataChanged();
+	         
 	      }
       }
    }
