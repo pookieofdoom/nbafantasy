@@ -712,7 +712,7 @@ public class FantasyFrame extends JFrame
    }
    
    
-   private class Restart implements ActionListener
+   public class Restart implements ActionListener
    {
 
       @Override

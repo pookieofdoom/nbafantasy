@@ -25,7 +25,7 @@ public class PlayerInfoFrame extends JFrame
    {
       mConn = conn;
       setLayout(new GridLayout(2, 1));
-      setSize(new Dimension(1500, 450));
+      setSize(new Dimension(1500, 800));
       createPlayer1Panel();
       createPlayer2Panel();
 
@@ -68,7 +68,7 @@ public class PlayerInfoFrame extends JFrame
    {
       // top size + border + design
       top = new JPanel();
-      top.setPreferredSize(new Dimension(1500, 450));
+      top.setPreferredSize(new Dimension(1500, 400));
       top.setLayout(new BorderLayout());
       top.setBorder(new EtchedBorder());
       
@@ -106,7 +106,7 @@ public class PlayerInfoFrame extends JFrame
    {
       // bottom size + border + design
       bottom = new JPanel();
-      bottom.setPreferredSize(new Dimension(1500, 450));
+      bottom.setPreferredSize(new Dimension(1500, 400));
       bottom.setLayout(new BorderLayout());
       bottom.setBorder(new EtchedBorder());
       

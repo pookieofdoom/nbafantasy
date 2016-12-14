@@ -1,9 +1,13 @@
 import java.awt.BorderLayout;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.*;
@@ -15,7 +19,7 @@ public class WinnerFrame extends JFrame
    private int             DimSizeX = 1100;                   // 1500 for
                                                              // windows, 750 for
                                                              // other
-   private int             DimSizeY = 300;                   // 450 for windows,
+   private int             DimSizeY = 700;                   // 450 for windows,
                                                              // 350 for other
    private Connection      mConn;
    private Player          mPlayer1;
@@ -124,7 +128,36 @@ public class WinnerFrame extends JFrame
       gridbag.setConstraints(player2List, c);
       player2Info.add(player2List);
       EastPanel.add(player2Info);
+      
 
+      //CenterPanel.add(a);
+
+
+   }
+   
+   public class Restart implements ActionListener
+   {
+
+      @Override
+      public void actionPerformed(ActionEvent arg0)
+      {
+         NBACreateTable.removeTables(mConn);
+         NBACreateTable a = new NBACreateTable(mConn);
+         for (int i =0; i < a.getTableNames().size(); i++)
+         {
+            a.createTables(a.getTableNames().get(i));
+         }
+         a.AddOverallScore();
+         Point currentLoc = getLocation();
+         dispose();
+         //setVisible(false);
+         JFrame appFrame = new PlayerInfoFrame(mConn);
+         appFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         appFrame.setLocation(currentLoc);
+         appFrame.setVisible(true);
+         
+      }
+      
    }
 
    private void createWestPanel()
@@ -182,10 +215,15 @@ public class WinnerFrame extends JFrame
       
       CenterPanel.add(playerScrollPane, BorderLayout.NORTH);
       //double player1Score = (double) finalScoreModel.getValueAt(0, 10);
+      JPanel wat = new JPanel(new GridLayout(2,1));
       String winner = findWinnerFromModel(finalScoreModel);
       winnerLabel = new JLabel("The winner is " + winner);
       winnerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-      CenterPanel.add(winnerLabel, BorderLayout.CENTER);
+      wat.add(winnerLabel);
+      JButton restartEverything = new JButton("Play Again");
+      restartEverything.addActionListener(new Restart());
+      wat.add(restartEverything);
+      CenterPanel.add(wat, BorderLayout.CENTER);
       
       String imageUrl = "";
       if ((System.getProperty("os.name").toString().contains("Windows"))) {
@@ -197,18 +235,19 @@ public class WinnerFrame extends JFrame
       }
       
       JLabel sup = new JLabel(new ImageIcon(imageUrl));
-      
-      if (mWinnerPlayer == null)
-         sup.setHorizontalAlignment(SwingConstants.CENTER);
-      else if (mWinnerPlayer.equals(mPlayer1))
-         sup.setHorizontalAlignment(SwingConstants.LEFT);
-      else if (mWinnerPlayer.equals(mPlayer1))
-         sup.setHorizontalAlignment(SwingConstants.RIGHT);
 
       
-      CenterPanel.add(sup, BorderLayout.SOUTH);
+      if (mWinnerPlayer == null) 
+         sup.setHorizontalAlignment(SwingConstants.CENTER);
       
-      //CenterPanel.add(a);
+      else if (mWinnerPlayer.equals(mPlayer1)) 
+         sup.setHorizontalAlignment(SwingConstants.LEFT);
+      
+      else if (mWinnerPlayer.equals(mPlayer2)) 
+         sup.setHorizontalAlignment(SwingConstants.RIGHT);
+
+      CenterPanel.add(sup, BorderLayout.SOUTH);
+
       
    }
    
