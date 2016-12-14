@@ -46,7 +46,11 @@ public class FantasyFrame extends JFrame
    private boolean toggle_C = false;
    private NonEditableModel fantasyModel;
    private char[] OrderBy = {'O','D'}; // 11 being Overall Desc
-   private static int totalRounds = 0;
+
+   private static int totalRounds = 2;
+
+   private JLabel detailFN;
+   private JButton draftButton;
 
    
    public FantasyFrame(Connection conn, int currentRound, Player player1, Player player2)
@@ -218,7 +222,7 @@ public class FantasyFrame extends JFrame
       c.weighty = 1;
       gridbag.setConstraints(player2List, c);
       player2Info.add(player2List);
-              
+
       playerInfoPanel.add(player1Info);
       playerInfoPanel.add(player2Info);
       EastPanel.add(playerInfoPanel);
@@ -250,9 +254,9 @@ public class FantasyFrame extends JFrame
       
       JPanel detailPanel = new JPanel(new BorderLayout());
       JLabel detailLabel = new JLabel("Information will go here about athlete with all seasons listed");
-      JLabel detailFN = new JLabel();
+      detailFN = new JLabel();
       detailPanel.add(detailLabel, BorderLayout.NORTH);
-      JPanel detailInfo = new JPanel();
+      JPanel detailInfo = new JPanel(new BorderLayout());
       detailInfo.add(detailFN);
       JButton testButton = new JButton("TEST BUTTON :D");
       testButton.addActionListener(new ActionListener()
@@ -265,13 +269,13 @@ public class FantasyFrame extends JFrame
             
          }
       });
-      detailInfo.add(testButton);
+      //detailInfo.add(testButton);
       JButton restartEverything = new JButton("Restart Everything");
       restartEverything.addActionListener(new Restart());
-      detailInfo.add(restartEverything);
+      detailInfo.add(restartEverything, BorderLayout.LINE_END);
       detailPanel.add(detailInfo, BorderLayout.NORTH);
       
-      JButton draftButton = new JButton("Draft");
+      draftButton = new JButton("Draft");
       draftButton.setBackground(Color.ORANGE);      
       detailPanel.add(draftButton, BorderLayout.SOUTH);
       
@@ -337,7 +341,8 @@ public class FantasyFrame extends JFrame
              {
                 mSelectedFN = (String) fantasyTable.getModel().getValueAt(row, 0);
                 mSelectedLN = (String) fantasyTable.getModel().getValueAt(row, 1);
-                detailFN.setText(mSelectedFN);
+                detailFN.setText(mSelectedFN + " " + mSelectedLN);
+                draftButton.setText("Draft " + mSelectedFN + " " + mSelectedLN);
                 mSelectedRow = row;
 
              }
@@ -345,7 +350,6 @@ public class FantasyFrame extends JFrame
          }
      });
      draftButton.addActionListener(new DraftOnClickListener());
-      
    }
    
    private JPanel loadPositionSort()
@@ -589,52 +593,79 @@ public class FantasyFrame extends JFrame
       {
          //insert into GameRoster table
          insertIntoGameRoster();
-         //remove row from Table since athlete has now been chosen
-         //todo ((NonEditableModel)table.getModel()).removeRow(mSelectedRow);
-         fantasyModel.removeRow(mSelectedFN, mSelectedLN);
-         if (mCurrentPlayer.getName().equals(player1.getName()))
-         {
-            System.out.println(mCurrentPlayer.getName());
-            ((DefaultListModel<String>)player1List.getModel())
-            .addElement(mSelectedFN + " " + mSelectedLN);
-         }
-         else
-         {
-            System.out.println(mCurrentPlayer.getName());
-            ((DefaultListModel<String>)player2List.getModel())
-            .addElement(mSelectedFN + " " + mSelectedLN);
-         }
-         
-         player1.setCurrentTurn(!player1.getCurrentTurn());
-         player2.setCurrentTurn(!player2.getCurrentTurn());
-         if (player1.getCurrentTurn())
-            mCurrentPlayer = player1;     
-         
-         else if (player2.getCurrentTurn())
-            mCurrentPlayer = player2;
-         
-         currentPlayerLabel.setText("Current Turn :" + mCurrentPlayer.getName());
-
-         mInternalRoundCount++;           
-         
-         if (mInternalRoundCount % 3 == 0)
-         {
-            mInternalRoundCount = 1;
-            mCurrentRound++;
-            //update current playrsr round? field might not be needed.
-
-            title.setText("Round " + mCurrentRound + "/" + totalRounds);
-         }
-         if (mCurrentRound == totalRounds)
-         {
-            Point currentLoc = getLocation();
-            setVisible(false);
-            dispose();
-            JFrame appFrame = new WinnerFrame(mConn, player1, player2);
-            appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            appFrame.setLocation(currentLoc);
-            appFrame.setVisible(true);
-         }
+         /*null check for players once drafted*/
+         if (mSelectedFN != null) {
+	         fantasyModel.removeRow(mSelectedFN, mSelectedLN);
+	         if (mCurrentPlayer.getName().equals(player1.getName()))
+	         {
+	            System.out.println(mCurrentPlayer.getName());
+	            ((DefaultListModel<String>)player1List.getModel())
+	            .addElement(mSelectedFN + " " + mSelectedLN);
+	         }
+	         else
+	         {
+	            System.out.println(mCurrentPlayer.getName());
+	            ((DefaultListModel<String>)player2List.getModel())
+	            .addElement(mSelectedFN + " " + mSelectedLN);
+	         }
+	         
+	         player1.setCurrentTurn(!player1.getCurrentTurn());
+	         player2.setCurrentTurn(!player2.getCurrentTurn());
+	         //given a player and boolean then set the appropiate in player class
+	         player1.updateSqlTurn(mConn);
+	         player2.updateSqlTurn(mConn);
+	         
+	         if (player1.getCurrentTurn())
+	            mCurrentPlayer = player1;     
+	         
+	         else if (player2.getCurrentTurn())
+	            mCurrentPlayer = player2;
+	         
+	         currentPlayerLabel.setText("Current Turn :" + mCurrentPlayer.getName());
+	
+	         mInternalRoundCount++;           
+	         
+	         if (mInternalRoundCount % 3 == 0)
+	         {
+	            mInternalRoundCount = 1;
+	            mCurrentRound++;
+	            //update current playrsr round? field might not be needed.
+	            title.setText("Round " + mCurrentRound + "/" + totalRounds);
+	         }
+	         
+	        //update the roundCount to Sql
+            try
+            {
+               Statement s1 = mConn.createStatement();
+               s1.executeUpdate("UPDATE CurrentGame SET round = " + mCurrentRound +
+            		   " WHERE UserName = " + "'" + player1.getName() + "'" );
+               s1.executeUpdate("UPDATE CurrentGame SET round = " + mCurrentRound +
+            		   " WHERE UserName = " + "'" + player2.getName() + "'" );
+            }
+            catch (Exception ee)
+            {
+               System.out.println(ee);
+            }
+	               
+	         
+	         if (mCurrentRound >= totalRounds)
+	         {
+	            Point currentLoc = getLocation();
+	            setVisible(false);
+	            dispose();
+	            JFrame appFrame = new WinnerFrame(mConn, player1, player2);
+	            appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+	            appFrame.setLocation(currentLoc);
+	            appFrame.setVisible(true);
+	         }
+	         /*resets the individual athelete panel*/
+	         detailFN.setText("");
+	         mSelectedFN = null;
+	         draftButton.setText("Draft");
+	         playerModel.resetPlayerStatTable();
+	         playerModel.fireTableDataChanged();
+	         
+	      }
       }
    }
    
@@ -1029,9 +1060,9 @@ public class FantasyFrame extends JFrame
    }
    
    private String GetToggleSettings(){
-      String s = "";
+      String s = " AND P.Position1 != 4 ";
       if(toggle_C || toggle_PG || toggle_SF || toggle_PF || toggle_SG){
-         s = "AND (";
+         s = s + "AND (";
          int toggleCount = 0;
          if(toggle_PG){
             toggleCount++;
@@ -1098,9 +1129,9 @@ public class FantasyFrame extends JFrame
 	           if (result.last()) {
 	        	   do
 	        	   {
-	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getInt("S.Games"),
-	        				   result.getInt("S.Points"), result.getInt("S.Assists"), result.getInt("S.Rebounds"),
-	        				   result.getInt("S.Steals"), result.getInt("S.Blocks"));
+	        		   this.setValueAtt(row++, result.getString("S.Season"), result.getDouble("S.Games"),
+	        				   result.getDouble("S.Points"), result.getDouble("S.Assists"), result.getDouble("S.Rebounds"),
+	        				   result.getDouble("S.Steals"), result.getDouble("S.Blocks"));
 	        	   } while (result.previous());
 	           }
 	        } 
@@ -1113,8 +1144,8 @@ public class FantasyFrame extends JFrame
 	       
 	    	fireTableDataChanged();
 	    }
-	    public void setValueAtt(int row, String season, int games, int points, 
-	    		int assists, int rebounds, int steals, int blocks) {
+	    public void setValueAtt(int row, String season, double games, double points, 
+	    		double assists, double rebounds, double steals, double blocks) {
 	        singleAthleteData[row][0] = season;
 	        singleAthleteData[row][1] = games;
 	        singleAthleteData[row][2] = roundMyNum (points / games);

@@ -170,7 +170,7 @@ public class NBACreateTable
     	 }
     	 else {
              bufferedReader = new BufferedReader(
-                     new FileReader("SQLInserts/build-" + tableName.toLowerCase() + ".sql")
+                     new FileReader("src/SQLInserts/build-" + tableName.toLowerCase() + ".sql")
                                         );    		 	 
     	 }
     	 

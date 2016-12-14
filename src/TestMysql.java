@@ -116,6 +116,7 @@ public class TestMysql
                   player2.setCurrentTurn(result.getBoolean("Turn"));
                }
                round = result.getInt("Round");
+               System.out.println("here is the round" + round);
                   
             }
             if (player1 == null || player2 == null)
